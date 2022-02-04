@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "LOqdTT8bb9ssMTZqrMFX/wDOia2VyzlUMkF14yFSCxRY3PcN4cBHkIgko4E0Qd2X05i4N0v6NdWr4sPPYzb2Hg==",
+  "success": true,
+  "projectFilePath": "D:\\ENDAVA\\TheCuriousReadersAPI\\src\\TheCuriousReadersAPI\\TheCuriousReadersAPI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\plame\\.nuget\\packages\\microsoft.extensions.apidescription.server\\3.0.0\\microsoft.extensions.apidescription.server.3.0.0.nupkg.sha512",
+    "C:\\Users\\plame\\.nuget\\packages\\microsoft.openapi\\1.2.3\\microsoft.openapi.1.2.3.nupkg.sha512",
+    "C:\\Users\\plame\\.nuget\\packages\\swashbuckle.aspnetcore\\6.2.3\\swashbuckle.aspnetcore.6.2.3.nupkg.sha512",
+    "C:\\Users\\plame\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.2.3\\swashbuckle.aspnetcore.swagger.6.2.3.nupkg.sha512",
+    "C:\\Users\\plame\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\6.2.3\\swashbuckle.aspnetcore.swaggergen.6.2.3.nupkg.sha512",
+    "C:\\Users\\plame\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\6.2.3\\swashbuckle.aspnetcore.swaggerui.6.2.3.nupkg.sha512"
+  ],
+  "logs": []
+}
