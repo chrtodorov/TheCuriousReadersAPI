@@ -34,7 +34,7 @@ namespace API.Controllers
             return Ok(new {token});
         }
 
-        [Authorize(Policy = Policies.RequireLibrarianRole)]
+        [Authorize(Policy = Policies.RequireAdministratorRole)]
         [HttpGet("test")]
         public IActionResult Test()
         {

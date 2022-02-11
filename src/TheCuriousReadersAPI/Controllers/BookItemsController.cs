@@ -2,10 +2,12 @@
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Requests;
 using DataAccess.Mappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize(Policy = Policies.RequireLibrarianRole)]
     [Route("api/[controller]")]
     [ApiController]
     public class BookItemsController : ControllerBase
@@ -19,7 +21,8 @@ namespace API.Controllers
             this._logger = logger;
         }
 
-        [HttpGet ("{bookItemId}")]
+        [AllowAnonymous]
+        [HttpGet("{bookItemId}")]
         public async Task<IActionResult> Get(Guid bookItemId)
         {
             _logger.LogInformation("Get Book Items {@BookItemId}", bookItemId);
@@ -45,7 +48,7 @@ namespace API.Controllers
             return Ok(await _bookItemsService.Create(bookItemsRequest.ToBookItem()));
         }
 
-        [HttpPut ("{bookItemId}")]
+        [HttpPut("{bookItemId}")]
         public async Task<IActionResult> Update(Guid bookItemId, [FromBody] BookItemsRequest bookItemsRequest)
         {
             _logger.LogInformation("Update Book Item" + bookItemsRequest.ToString());

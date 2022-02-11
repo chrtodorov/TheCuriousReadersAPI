@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Interfaces.Users;
+﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Interfaces.Users;
 using BusinessLayer.Models.Requests;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,7 +16,7 @@ namespace DataAccess
         private readonly IConfiguration configuration;
         private readonly ILogger<UsersRepository> _logger;
         private Dictionary<string, string> users = new Dictionary<string, string> { { "username1", "password1" }, { "username2", "password2" } };
-        private List<string> roles = new List<string> { "Customer", "Librarian" };
+        private List<string> roles = new List<string> { Roles.Administrator, Roles.Customer, Roles.Librarian };
 
         public UsersRepository(DataContext dbContext, IConfiguration configuration, ILogger<UsersRepository> logger)
         {

@@ -1,10 +1,13 @@
-﻿using BusinessLayer.Interfaces.Publishers;
+﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Requests;
 using DataAccess.Mappers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    [Authorize(Policy = Policies.RequireLibrarianRole)]
     [Route("api/[controller]")]
     [ApiController]
     public class PublishersController : ControllerBase
@@ -18,6 +21,7 @@ namespace API.Controllers
             this._logger = logger;
         }
 
+        [AllowAnonymous]
         [HttpGet("{publisherId}")]
         public async Task<IActionResult> Get(Guid publisherId)
         {

@@ -44,11 +44,13 @@ builder.Services.AddAuthentication(x =>
         ValidateIssuer = false,
         ValidateAudience = false,
     };
-
 });
 
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy(Policies.RequireAdministratorRole,
+        policy => policy.RequireRole(Roles.Administrator));
+
     options.AddPolicy(Policies.RequireLibrarianRole,
         policy => policy.RequireRole(Roles.Librarian));
 
