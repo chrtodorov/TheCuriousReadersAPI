@@ -14,6 +14,8 @@ public class BooksService : IBooksService
 
     public async Task<Book?> Get(Guid bookId) => await _repository.Get(bookId);
 
+    public async Task<PagedList<Book>> GetBooks(BookParameters booksParameters) => await _repository.GetBooks(booksParameters);
+
     public async Task<Book> Create(Book book) => await _repository.Create(book);
 
     public async Task<Book?> Update(Guid bookId, Book book) => await _repository.Update(bookId, book);

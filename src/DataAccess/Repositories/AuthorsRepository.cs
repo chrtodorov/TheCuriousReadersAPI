@@ -45,8 +45,7 @@ public class AuthorsRepository : IAuthorsRepository
         if (authorEntity is null)
             return null;
 
-        authorEntity.FirstName = author.FirstName;
-        authorEntity.LastName = author.LastName;
+        authorEntity.Name = author.Name;
         authorEntity.Bio = author.Bio;
 
         await _dataContext.SaveChangesAsync();

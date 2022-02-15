@@ -1,5 +1,7 @@
-﻿using BusinessLayer.Enumerations;
+﻿using System.Text.Json;
+using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.Books;
+using BusinessLayer.Models;
 using BusinessLayer.Requests;
 using DataAccess.Mappers;
 using Microsoft.AspNetCore.Authorization;
@@ -34,6 +36,29 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetBooks([FromQuery] BookParameters booksParameters)
+        {
+            var books = await _booksService.GetBooks(booksParameters);
+
+            var metadata = new
+            {
+                books.TotalCount,
+                books.PageSize,
+                books.CurrentPage,
+                books.TotalPages,
+                books.HasNext,
+                books.HasPrevious
+            };
+
+            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
+
+            _logger.LogInformation($"Returned {books.TotalCount} books from database");
+
+            return Ok(books);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BookRequest bookRequest)
         {
@@ -54,11 +79,9 @@ namespace API.Controllers
                 return BadRequest(ModelState);
 
             if (!await _booksService.Contains(bookId))
-                return NotFound("Author with such Id cannot be found and updated");
+                return NotFound("Book with such Id cannot be found and updated");
 
-            // to implement UPDATE here!
-
-            return Ok();
+            return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
         }
 
         [HttpDelete("{bookId}")]

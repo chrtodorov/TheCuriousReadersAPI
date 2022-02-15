@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,10 +82,11 @@ builder.Services.AddSwaggerGen(options =>
                     Id = "Bearer",
                     Type = ReferenceType.SecurityScheme
                 }
-            }, new List<string>()
+            },
+            new List<string>()
         }
     });
-});
+});   
 
 builder.Services.AddDbContext<DataContext>(options =>
 {

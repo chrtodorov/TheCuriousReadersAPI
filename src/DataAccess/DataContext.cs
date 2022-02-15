@@ -62,7 +62,7 @@ public class DataContext : DbContext
         });
 
         modelBuilder.Entity<AuthorEntity>()
-            .HasIndex(a => new {a.FirstName, a.LastName}).IsUnique();
+            .HasIndex(a => a.Name).IsUnique();
 
         modelBuilder.Entity<PublisherEntity>()
             .HasIndex(p => p.Name).IsUnique();

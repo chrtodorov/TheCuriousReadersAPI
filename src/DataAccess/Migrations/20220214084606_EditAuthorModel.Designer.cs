@@ -4,6 +4,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220214084606_EditAuthorModel")]
+    partial class EditAuthorModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,45 +37,6 @@ namespace DataAccess.Migrations
                     b.HasIndex("BooksBookId");
 
                     b.ToTable("AuthorEntityBookEntity");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.AddressEntity", b =>
-                {
-                    b.Property<Guid>("AddressId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AdditionalInfo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("ApartmentNumber")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("BuildingNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
-
-                    b.Property<string>("Street")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("StreetNumber")
-                        .HasColumnType("int");
-
-                    b.HasKey("AddressId");
-
-                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.AuthorEntity", b =>
@@ -174,98 +137,6 @@ namespace DataAccess.Migrations
                     b.ToTable("BookItems");
                 });
 
-            modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("AddressId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EmailAddress")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId");
-
-                    b.HasIndex("AddressId")
-                        .IsUnique();
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("Customers");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.LibrarianEntity", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EmailAddress")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("Librarians");
-                });
-
             modelBuilder.Entity("DataAccess.Entities.PublisherEntity", b =>
                 {
                     b.Property<Guid>("PublisherId")
@@ -283,21 +154,6 @@ namespace DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("Publishers");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.RoleEntity", b =>
-                {
-                    b.Property<Guid>("RoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("RoleId");
-
-                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("AuthorEntityBookEntity", b =>
@@ -337,42 +193,6 @@ namespace DataAccess.Migrations
                     b.Navigation("Book");
                 });
 
-            modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
-                {
-                    b.HasOne("DataAccess.Entities.AddressEntity", "Address")
-                        .WithOne("Customer")
-                        .HasForeignKey("DataAccess.Entities.CustomerEntity", "AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DataAccess.Entities.RoleEntity", "Role")
-                        .WithMany("Customers")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Address");
-
-                    b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.LibrarianEntity", b =>
-                {
-                    b.HasOne("DataAccess.Entities.RoleEntity", "Role")
-                        .WithMany("Librarians")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.AddressEntity", b =>
-                {
-                    b.Navigation("Customer")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
                 {
                     b.Navigation("BookItems");
@@ -381,13 +201,6 @@ namespace DataAccess.Migrations
             modelBuilder.Entity("DataAccess.Entities.PublisherEntity", b =>
                 {
                     b.Navigation("Books");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.RoleEntity", b =>
-                {
-                    b.Navigation("Customers");
-
-                    b.Navigation("Librarians");
                 });
 #pragma warning restore 612, 618
         }

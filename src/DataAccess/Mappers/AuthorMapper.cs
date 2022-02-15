@@ -11,8 +11,7 @@ public static class AuthorMapper
         return new Author
         {
             AuthorId = authorEntity.AuthorId,
-            FirstName = authorEntity.FirstName,
-            LastName = authorEntity.LastName,
+            Name = authorEntity.Name,
             Bio = authorEntity.Bio
         };
     }
@@ -21,8 +20,7 @@ public static class AuthorMapper
     {
         return new AuthorEntity
         {
-            FirstName = author.FirstName,
-            LastName = author.LastName,
+            Name = author.Name,
             Bio = author.Bio
         };
     }
@@ -31,8 +29,7 @@ public static class AuthorMapper
     {
         return new Author
         {
-            FirstName = authorsCreateRequest.FirstName,
-            LastName = authorsCreateRequest.LastName,
+            Name = authorsCreateRequest.Name,
             Bio = authorsCreateRequest.Bio
         };
     }
