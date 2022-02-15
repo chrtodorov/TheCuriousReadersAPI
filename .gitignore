@@ -365,3 +365,53 @@ FodyWeavers.xsd
 # Ignore appsettings
 appsettings.json
 **/appsettings.json
+
+
+#Frontend Ignore
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+src/TheCuriousReaders/dist
+src/TheCuriousReaders/tmp
+src/TheCuriousReaders/out-tsc
+
+# Only exists if Bazel was run
+src/TheCuriousReaders/bazel-out
+
+# dependencies
+src/TheCuriousReaders/node_modules
+
+# profiling files
+src/TheCuriousReaders/chrome-profiler-events*.json
+
+# IDEs and editors
+src/TheCuriousReaders/.idea
+src/TheCuriousReaders/.project
+src/TheCuriousReaders/.classpath
+src/TheCuriousReaders/.c9/
+src/TheCuriousReaders/*.launch
+src/TheCuriousReaders/.settings/
+src/TheCuriousReaders/*.sublime-workspace
+
+# IDE - VSCode
+src/TheCuriousReaders/.vscode/*
+src/TheCuriousReaders/!.vscode/settings.json
+src/TheCuriousReaders/!.vscode/tasks.json
+src/TheCuriousReaders/!.vscode/launch.json
+src/TheCuriousReaders/!.vscode/extensions.json
+src/TheCuriousReaders/.history/*
+
+# misc
+src/TheCuriousReaders/.angular/cache
+src/TheCuriousReaders/.sass-cache
+src/TheCuriousReaders/connect.lock
+src/TheCuriousReaders/coverage
+src/TheCuriousReaders/libpeerconnection.log
+src/TheCuriousReaders/npm-debug.log
+src/TheCuriousReaders/yarn-error.log
+src/TheCuriousReaders/testem.log
+src/TheCuriousReaders/typings
+
+# System Files
+src/TheCuriousReaders/.DS_Store
+src/TheCuriousReaders/Thumbs.db

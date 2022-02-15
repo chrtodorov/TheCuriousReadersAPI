@@ -4,6 +4,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220214074625_AddUserEntities")]
+    partial class AddUserEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -185,9 +187,6 @@ namespace DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("AddressId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("EmailAddress")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -215,13 +214,7 @@ namespace DataAccess.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("UserId");
-
-                    b.HasIndex("AddressId")
-                        .IsUnique();
 
                     b.HasIndex("RoleId");
 
@@ -234,6 +227,9 @@ namespace DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
                     b.Property<string>("EmailAddress")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -260,9 +256,6 @@ namespace DataAccess.Migrations
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.HasKey("UserId");
 
@@ -320,6 +313,17 @@ namespace DataAccess.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DataAccess.Entities.AddressEntity", b =>
+                {
+                    b.HasOne("DataAccess.Entities.CustomerEntity", "Customer")
+                        .WithOne("Address")
+                        .HasForeignKey("DataAccess.Entities.AddressEntity", "AddressId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
                 {
                     b.HasOne("DataAccess.Entities.PublisherEntity", "Publisher")
@@ -344,19 +348,11 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
                 {
-                    b.HasOne("DataAccess.Entities.AddressEntity", "Address")
-                        .WithOne("Customer")
-                        .HasForeignKey("DataAccess.Entities.CustomerEntity", "AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DataAccess.Entities.RoleEntity", "Role")
                         .WithMany("Customers")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Address");
 
                     b.Navigation("Role");
                 });
@@ -372,15 +368,15 @@ namespace DataAccess.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("DataAccess.Entities.AddressEntity", b =>
-                {
-                    b.Navigation("Customer")
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
                 {
                     b.Navigation("BookItems");
+                });
+
+            modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
+                {
+                    b.Navigation("Address")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("DataAccess.Entities.PublisherEntity", b =>

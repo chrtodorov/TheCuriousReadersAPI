@@ -12,6 +12,10 @@ public class DataContext : DbContext
     public DbSet<BookEntity> Books { get; set; } = null!;
     public DbSet<BookItemEntity> BookItems { get; set; } = null!;
     public DbSet<PublisherEntity> Publishers { get; set; } = null!;
+    public DbSet<CustomerEntity> Customers { get; set; } = null!;
+    public DbSet<LibrarianEntity> Librarians { get; set; } = null!;
+    public DbSet<AddressEntity> Addresses { get; set; } = null!;
+    public DbSet<RoleEntity> Roles { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,10 +43,29 @@ public class DataContext : DbContext
                 .HasIndex(bi => bi.Barcode).IsUnique();
         });
 
+        modelBuilder.Entity<CustomerEntity>(builder =>
+        {
+            builder
+                .HasOne(c => c.Address)
+                .WithOne(a => a.Customer)
+                .HasForeignKey<CustomerEntity>(c => c.AddressId);
+            builder
+                .HasOne(c => c.Role)
+                .WithMany(r => r.Customers);
+        });
+
+        modelBuilder.Entity<LibrarianEntity>(builder =>
+        {
+            builder
+                .HasOne(c => c.Role)
+                .WithMany(r => r.Librarians);
+        });
+
         modelBuilder.Entity<AuthorEntity>()
             .HasIndex(a => new {a.FirstName, a.LastName}).IsUnique();
 
         modelBuilder.Entity<PublisherEntity>()
             .HasIndex(p => p.Name).IsUnique();
+
     }
 }
