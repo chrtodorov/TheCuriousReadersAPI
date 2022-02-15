@@ -20,4 +20,6 @@ public class AuthorsService : IAuthorsService
 
     public async Task Delete(Guid authorId) => await _authorsRepository.Delete(authorId);
     public async Task<bool> Contains(Guid id) => await _authorsRepository.Contains(id);
+
+    public async Task<List<Author>> GetAuthors(AuthorParameters authorParameters) => await _authorsRepository.GetAuthors(authorParameters);
 }

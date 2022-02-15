@@ -25,13 +25,26 @@ namespace API.Controllers
         [HttpGet("{publisherId}")]
         public async Task<IActionResult> Get(Guid publisherId)
         {
-            _logger.LogInformation("Get Author {@PublisherId}", publisherId);
+            _logger.LogInformation("Get Publisher {@PublisherId}", publisherId);
 
             var result = await _publishersService.Get(publisherId);
 
             if (result is null)
             {
                 return NotFound("Publisher with such Id is not found!");
+            }
+            return Ok(result);
+        }
+
+        [HttpGet()]
+        public async Task<IActionResult> GetAll()
+        {
+            _logger.LogInformation("Get All Publishers");
+            var result = await _publishersService.GetAll();
+
+            if (result is null)
+            {
+                return NotFound("No existing publishers");
             }
             return Ok(result);
         }

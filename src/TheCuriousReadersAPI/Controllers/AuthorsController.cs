@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.Authors;
+using BusinessLayer.Models;
 using BusinessLayer.Requests;
 using DataAccess.Mappers;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +33,22 @@ namespace API.Controllers
             if (result is null)
                 return NotFound("Author with such Id is not found!");
             return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAuthors([FromQuery]AuthorParameters authorParameters)
+        {
+
+            var authors = await _authorsService.GetAuthors(authorParameters);
+            
+            if (authors is null)
+            {
+                return NotFound("No authors found");
+            }
+
+            _logger.LogInformation($"Returned {authors.Count} authors from the database");
+
+            return Ok(authors);
         }
 
         [HttpPost]

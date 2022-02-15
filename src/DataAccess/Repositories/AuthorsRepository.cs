@@ -26,6 +26,25 @@ public class AuthorsRepository : IAuthorsRepository
         return authorEntity?.ToAuthor();
     }
 
+    public async Task<List<Author>> GetAuthors(AuthorParameters authorParameters)
+    {
+        var query = _dataContext.Authors.AsQueryable();
+        
+        if (!string.IsNullOrEmpty(authorParameters.Name))
+        {
+            query = query.Where(a => a.Name.Contains(authorParameters.Name));
+        }
+        
+        var result = await query
+            .OrderBy(a => a.Name)
+            .Select(a => a.ToAuthor())
+            .ToListAsync();
+        
+        _logger.LogInformation("Get all authors");
+
+        return result;
+    }
+
     public async Task<Author> Create(Author author)
     {
         var authorEntity = author.ToAuthorEntity();
@@ -75,4 +94,5 @@ public class AuthorsRepository : IAuthorsRepository
     {
         return await _dataContext.Authors.AnyAsync(a => a.AuthorId == id);
     }
+
 }

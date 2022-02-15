@@ -48,6 +48,19 @@ public class PublishersRepository : IPublishersRepository
         return publisherEntity?.ToPublisher();
     }
 
+    public async Task<List<Publisher>> GetAll()
+    {
+        _logger.LogInformation("Get all Publishers");
+
+        var publisherEntity = await _dataContext.Publishers
+            .Where(p => p != null)
+            .OrderBy(p => p.Name)
+            .Select(p => p.ToPublisher())
+            .ToListAsync();
+
+        return publisherEntity;
+    }
+
     public async Task<Publisher?> Update(Guid publisherId, Publisher publisher)
     {
         var publisherEntity = await _dataContext.Publishers.FindAsync(publisherId);

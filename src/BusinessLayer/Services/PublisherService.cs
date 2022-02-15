@@ -19,5 +19,6 @@ public class PublisherService : IPublishersService
 
     public async Task<Publisher?> Get(Guid publisherId) => await this._publisherRepository.Get(publisherId);
 
+    public async Task<List<Publisher>> GetAll() => await this._publisherRepository.GetAll();
     public async Task<Publisher?> Update(Guid publisherId, Publisher publisher) => await this._publisherRepository.Update(publisherId, publisher);
 }
