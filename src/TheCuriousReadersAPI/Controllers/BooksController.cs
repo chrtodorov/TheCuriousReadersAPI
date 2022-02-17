@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using BusinessLayer.Enumerations;
+﻿using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
 using BusinessLayer.Requests;
@@ -25,6 +24,8 @@ namespace API.Controllers
 
         [AllowAnonymous]
         [HttpGet("{bookId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get(Guid bookId)
         {
             _logger.LogInformation("Get Book {@BookId}", bookId);
@@ -38,21 +39,11 @@ namespace API.Controllers
 
         [AllowAnonymous]
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedList<Book>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetBooks([FromQuery] BookParameters booksParameters)
         {
             var books = await _booksService.GetBooks(booksParameters);
-
-            var metadata = new
-            {
-                books.TotalCount,
-                books.PageSize,
-                books.CurrentPage,
-                books.TotalPages,
-                books.HasNext,
-                books.HasPrevious
-            };
-
-            Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(metadata));
 
             _logger.LogInformation($"Returned {books.TotalCount} books from database");
 
@@ -60,6 +51,9 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Create([FromBody] BookRequest bookRequest)
         {
             _logger.LogInformation("Create Book: " + bookRequest.ToString());
@@ -71,6 +65,9 @@ namespace API.Controllers
         }
 
         [HttpPut("{bookId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Update(Guid bookId, [FromBody] BookRequest bookRequest)
         {
             _logger.LogInformation("Update Book: " + bookRequest.ToString());
@@ -85,6 +82,9 @@ namespace API.Controllers
         }
 
         [HttpDelete("{bookId}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Delete(Guid bookId)
         {
             _logger.LogInformation("Delete Book with {@bookId}", bookId);

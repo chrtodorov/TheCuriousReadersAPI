@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using BusinessLayer.Interfaces.Books;
+﻿using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
-using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,7 +22,6 @@ public class BooksRepository : IBooksRepository
         _logger.LogInformation("Get Book with {@BookId}", bookId);
 
         var bookEntity = await _dataContext.Books
-            .Include(b => b.Publisher)
             .Include(b => b.Authors)
             .FirstOrDefaultAsync(b => b.BookId == bookId);
 
@@ -101,7 +98,7 @@ public class BooksRepository : IBooksRepository
         if (bookToUpdate is null) return null;
 
         bookToUpdate.Isbn = updatedBook.Isbn;
-        bookToUpdate.Title = bookToUpdate.Title;
+        bookToUpdate.Title = updatedBook.Title;
         bookToUpdate.Genre = updatedBook.Genre;
         bookToUpdate.PublisherId = updatedBook.PublisherId;
         bookToUpdate.CoverUrl = updatedBook.CoverUrl;

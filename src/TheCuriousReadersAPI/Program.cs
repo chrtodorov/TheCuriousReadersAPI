@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +85,17 @@ builder.Services.AddSwaggerGen(options =>
             new List<string>()
         }
     });
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "The Curious Readers API",
+        Description = "The Curious Readers backend API",
+        Contact = new OpenApiContact
+        {
+            Name = "Team Vitosha",
+        }
+    });
+
 });   
 
 builder.Services.AddDbContext<DataContext>(options =>
