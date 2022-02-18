@@ -20,5 +20,5 @@ public class BookItem
     public BookItemStatusEnumeration BookStatus { get; set; }
 
     [Required]
-    public Guid BookId { get; set; }
+    public Guid? BookId { get; set; }
 }

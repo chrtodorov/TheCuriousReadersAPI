@@ -36,7 +36,8 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpGet()]
+        [AllowAnonymous]
+        [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             _logger.LogInformation("Get All Publishers");

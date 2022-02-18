@@ -33,12 +33,5 @@ namespace API.Controllers
             _logger.LogInformation("Authenticated user: {@Username}", authenticateRequest.Username);
             return Ok(new {token});
         }
-
-        [Authorize(Policy = Policies.RequireAdministratorRole)]
-        [HttpGet("test")]
-        public IActionResult Test()
-        {
-            return Ok();
-        }
     }
 }

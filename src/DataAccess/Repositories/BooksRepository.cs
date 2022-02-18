@@ -34,7 +34,7 @@ public class BooksRepository : IBooksRepository
 
         if (!string.IsNullOrEmpty(bookParameters.Title))
         {
-            query = query.Where(b => b.Title == bookParameters.Title);
+            query = query.Where(b => b.Title.Contains(bookParameters.Title));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.Author))

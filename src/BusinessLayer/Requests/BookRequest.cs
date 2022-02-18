@@ -25,9 +25,9 @@ public class BookRequest
     public string CoverUrl { get; set; } = string.Empty;
 
     [Required]
-    public Guid PublisherId { get; set; }
+    public Guid? PublisherId { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "At least one author is required!")]
     [MinLength(1)]
     public ICollection<Guid>? AuthorsIds { get; set; }
 }

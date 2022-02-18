@@ -54,7 +54,8 @@ public class BookRepositoryTests
 
     private readonly BookEntity _fakeBook = new()
     {
-        BookId = Guid.Parse("9fc0ae59-15cb-4a19-9916-4c431383fab5")
+        BookId = Guid.Parse("9fc0ae59-15cb-4a19-9916-4c431383fab5"),
+        PublisherId = Guid.NewGuid()
     };
 
 
@@ -296,7 +297,7 @@ public class BookRepositoryTests
     [Test]
     public async Task UpdateAsync_NotFound()
     {
-        _context.Books.Add(new BookEntity() { BookId = _bookData.BookId });
+        _context.Books.Add(_fakeBook);
 
         await _context.SaveChangesAsync();
 

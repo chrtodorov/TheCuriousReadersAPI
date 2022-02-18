@@ -27,7 +27,7 @@ public class Book
     public string CoverUrl { get; set; } = string.Empty;
 
     [Required]
-    public Guid PublisherId { get; set; }
+    public Guid? PublisherId { get; set; }
 
     [Required]
     [MinLength(1)]

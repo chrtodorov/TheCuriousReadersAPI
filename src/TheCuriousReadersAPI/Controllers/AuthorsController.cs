@@ -35,6 +35,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetAuthors([FromQuery]AuthorParameters authorParameters)
         {

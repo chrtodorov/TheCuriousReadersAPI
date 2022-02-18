@@ -31,6 +31,8 @@ public class DataContext : DbContext
             builder
                 .HasMany(b => b.BookItems)
                 .WithOne(b => b.Book);
+            builder
+                .HasIndex(b => b.Isbn).IsUnique();
         });
 
         modelBuilder.Entity<BookItemEntity>(builder =>

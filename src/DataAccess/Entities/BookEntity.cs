@@ -32,7 +32,7 @@ public class BookEntity
     [Required]
     public PublisherEntity? Publisher { get; set; }
 
-    public Guid PublisherId { get; set; }
+    public Guid? PublisherId { get; set; }
 
     [Required]
     [MinLength(1)]

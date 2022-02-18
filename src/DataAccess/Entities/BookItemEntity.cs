@@ -22,5 +22,5 @@ public class BookItemEntity
 
     [Required]
     public BookEntity? Book { get; set; }
-    public Guid BookId { get; set; }
+    public Guid? BookId { get; set; }
 }
