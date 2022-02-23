@@ -3,15 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataAccess.Entities
 {
-    public class RoleEntity
+    public class AdministratorEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid RoleId { get; set; }
+        public Guid AdministartorId { get; set; }
 
         [Required]
-        public string Name { get; set; } = null!;
-
-        public ICollection<UserEntity> Users { get; set; } = new HashSet<UserEntity>();
+        public UserEntity User { get; set; } = null!;
     }
 }

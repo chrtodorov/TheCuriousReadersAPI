@@ -1,13 +1,10 @@
 ﻿using BusinessLayer.Enumerations;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataAccess.Entities
+namespace BusinessLayer.Requests
 {
-    public class UserEntity
+    public record UserRequest
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid UserId { get; set; }
 
         [Required]
@@ -34,11 +31,23 @@ namespace DataAccess.Entities
         public AccountStatus Status { get; set; } = AccountStatus.Pending;
 
         [Required]
-        public RoleEntity Role { get; set; } = null!;
+        public string RoleName { get; set; } = null!;
 
-        public RefreshTokenEntity RefreshToken { get; set; } = null!;
-        public ICollection<CustomerEntity> Customers { get; set; } = null!;
-        public ICollection<LibrarianEntity> Librarians { get; set; } = null!;
-        public ICollection<AdministratorEntity> Administrators { get; set; } = null!;
+        [MaxLength(60)]
+        public string? Country { get; set; } = null!;
+
+        [MaxLength(100)]
+        public string? City { get; set; } = null!;
+
+        [MaxLength(100)]
+        public string? Street { get; set; } = null!;
+
+        public int? StreetNumber { get; set; }
+
+        public int? BuildingNumber { get; set; }
+
+        public int? ApartmentNumber { get; set; }
+
+        public string? AdditionalInfo { get; set; } = null!;
     }
 }

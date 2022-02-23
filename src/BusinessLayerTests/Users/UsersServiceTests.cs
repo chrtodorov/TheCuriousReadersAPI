@@ -1,8 +1,9 @@
 ﻿using BusinessLayer;
 using BusinessLayer.Interfaces.Users;
-using BusinessLayer.Models.Requests;
+using BusinessLayer.Models;
 using NSubstitute;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace BusinessLayerTests.Users
 {
@@ -11,12 +12,24 @@ namespace BusinessLayerTests.Users
         private IUsersRepository _usersRepository = null!;
         private IUsersService _usersService = null!;
 
-
-        public AuthenticateRequest validModel = new AuthenticateRequest
+        private User validCustomer = new User
         {
-            Username = "username1",
-            Password = "password1",
-            Role = "Librarian",
+            FirstName = "Valid",
+            LastName = "Customer",
+            EmailAddress = "customer@abv.bg",
+            Password = "1234",
+            RoleName = "customer",
+            PhoneNumber = "123456789",
+            Address = new Address
+            {
+                Country = "Bulgaria",
+                City = "Plovdiv",
+                Street = "main street",
+                ApartmentNumber = 14,
+                BuildingNumber = 1,
+                StreetNumber = 15,
+                AdditionalInfo = "test info"
+            }
         };
 
         [SetUp]
@@ -27,13 +40,41 @@ namespace BusinessLayerTests.Users
         }
 
         [Test]
-        public void Authenticate_Success()
+        public async Task Authenticate()
         {
-            var validToken = "MyValidToken";
-            _usersRepository.Authenticate(validModel).Returns(validToken);
-            var token = _usersService.Authenticate(validModel);
+            var validToken = "validToken";
 
-            Assert.That(token, Is.EqualTo(validToken));
+            var validAuthenticatedUser = new AuthenticatedUser(
+                $"{validCustomer.FirstName} {validCustomer.LastName}", 
+                validCustomer.EmailAddress, 
+                validCustomer.RoleName,
+                validToken, 
+                validToken);
+
+            _usersRepository.Authenticate(validCustomer.EmailAddress, validCustomer.Password).Returns(validAuthenticatedUser);
+            var authenticatedUser = await _usersService.Authenticate(validCustomer.EmailAddress, validCustomer.Password);
+
+            Assert.That(authenticatedUser.JwtToken, Is.EqualTo(validToken));
+            Assert.That(authenticatedUser.RefreshToken, Is.EqualTo(validToken));
+        }
+
+        [Test]
+        public async Task Register()
+        {
+            var validToken = "validToken";
+
+            var validAuthenticatedUser = new AuthenticatedUser(
+                $"{validCustomer.FirstName} {validCustomer.LastName}",
+                validCustomer.EmailAddress,
+                validCustomer.RoleName,
+                validToken,
+                validToken);
+
+            _usersRepository.Register(validCustomer).Returns(validAuthenticatedUser);
+            var authenticatedUser = await _usersService.Register(validCustomer);
+
+            Assert.That(authenticatedUser.JwtToken, Is.EqualTo(validToken));
+            Assert.That(authenticatedUser.RefreshToken, Is.EqualTo(validToken));
         }
     }
 }

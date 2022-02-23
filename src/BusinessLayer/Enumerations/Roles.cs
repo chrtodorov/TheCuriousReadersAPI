@@ -2,8 +2,8 @@
 {
     public static class Roles
     {
-        public const string Administrator = "Administrator";
-        public const string Librarian = "Librarian";
-        public const string Customer = "Customer";
+        public const string Administrator = "administrator";
+        public const string Librarian = "librarian";
+        public const string Customer = "customer";
     }
 }

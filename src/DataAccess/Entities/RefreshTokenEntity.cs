@@ -3,13 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataAccess.Entities
 {
-    public class LibrarianEntity
+    public class RefreshTokenEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid LibrarianId { get; set; }
+        public Guid RefreshTokenId { get; set; }
+        public string Token { get; set; } = null!;
 
-        [Required]
+        public DateTime ExpiresOn { get; set; }
+
         public UserEntity User { get; set; } = null!;
+        public Guid UserId { get; set; }
     }
 }

@@ -1,14 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace DataAccess.Entities
+namespace BusinessLayer.Models
 {
-    public class AddressEntity
+    public class Address
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid AddressId { get; set; }
-
         [Required]
         [MaxLength(60)]
         public string Country { get; set; } = null!;
@@ -29,7 +24,5 @@ namespace DataAccess.Entities
         public int? ApartmentNumber { get; set; }
 
         public string? AdditionalInfo { get; set; } = null!;
-
-        public CustomerEntity Customer { get; set; } = null!;
     }
 }

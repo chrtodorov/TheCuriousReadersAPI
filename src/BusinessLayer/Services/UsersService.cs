@@ -1,5 +1,5 @@
 ﻿using BusinessLayer.Interfaces.Users;
-using BusinessLayer.Models.Requests;
+using BusinessLayer.Models;
 
 namespace BusinessLayer
 {
@@ -12,9 +12,10 @@ namespace BusinessLayer
             this.usersRepository = usersRepository;
         }
 
-        public string Authenticate(AuthenticateRequest authenticateRequest)
-        {
-            return usersRepository.Authenticate(authenticateRequest);
-        }
+        public async Task<AuthenticatedUser> Authenticate(string email, string password) =>
+            await usersRepository.Authenticate(email, password);
+
+        public async Task<AuthenticatedUser> Register(User user) => 
+            await usersRepository.Register(user);
     }
 }

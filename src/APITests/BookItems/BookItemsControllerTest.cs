@@ -127,7 +127,7 @@ namespace APITests.BookItems
 
             _bookItemsService.Contains(Arg.Any<Guid>()).Returns(true);
 
-            var resultU = await _bookItemsController.Update(bookItemsData.BookId, bookItemsRequest);
+            var resultU = await _bookItemsController.Update(bookItemsData.BookId!.Value, bookItemsRequest);
 
             await _bookItemsService.Received(1).Update(Arg.Any<Guid>(), Arg.Is<BookItem>(bi =>
                 bi.Barcode == bookItemsData.Barcode &&

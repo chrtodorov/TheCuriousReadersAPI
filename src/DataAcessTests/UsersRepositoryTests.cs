@@ -1,64 +1,75 @@
 ﻿using BusinessLayer.Interfaces.Users;
-using BusinessLayer.Models.Requests;
+using BusinessLayer.Models;
 using DataAccess;
+using DataAccess.Seeders;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
+using System;
+using System.Threading.Tasks;
 
 namespace DataAccessTests
 {
     public class UsersRepositoryTests
     {
-        public IUsersRepository _usersRepository = null!;
-        public ILogger<UsersRepository> _logger = null!;
+        private IUsersRepository _usersRepository = null!;
+        private ILogger<UsersRepository> _logger = null!;
         private IConfiguration _configuration = null!;
-        public DataContext _context = null!;
-
-        public AuthenticateRequest validModel1 = new AuthenticateRequest
+        private DataContext _context = null!;
+        private User validAdmin = new User
         {
-            Username = "username1",
-            Password = "password1",
-            Role = "Librarian",
+            FirstName = "Valid",
+            LastName = "Admin",
+            EmailAddress = "admin@abv.bg",
+            Password = "1234",
+            RoleName = "administrator",
+            PhoneNumber = "123456789"
         };
 
-        public AuthenticateRequest validModel2 = new AuthenticateRequest
+        private User validLibrarian = new User
         {
-            Username = "username2",
-            Password = "password2",
-            Role = "Customer",
+            FirstName = "Valid",
+            LastName = "Librarian",
+            EmailAddress = "librarian@abv.bg",
+            Password = "1234",
+            RoleName = "librarian",
+            PhoneNumber = "123456789"
         };
 
-        public AuthenticateRequest validModel3 = new AuthenticateRequest
+        private User validCustomer = new User
         {
-            Username = "username2",
-            Password = "password2",
-            Role = "Administrator",
+            FirstName = "Valid",
+            LastName = "Customer",
+            EmailAddress = "customer@abv.bg",
+            Password = "1234",
+            RoleName = "customer",
+            PhoneNumber = "123456789",
+            Address = new Address
+            {
+                Country = "Bulgaria",
+                City = "Plovdiv",
+                Street = "main street",
+                ApartmentNumber = 14,
+                BuildingNumber = 1,
+                StreetNumber = 15,
+                AdditionalInfo = "test info"
+            }
         };
 
-        public AuthenticateRequest invalidModel1 = new AuthenticateRequest
+        private User invalidUser = new User
         {
-            Username = "test",
-            Password = "password2",
-            Role = "Administrator",
-        };
-
-        public AuthenticateRequest invalidModel2 = new AuthenticateRequest
-        {
-            Username = "username2",
-            Password = "test",
-            Role = "Administrator",
-        };
-
-        public AuthenticateRequest invalidModel3 = new AuthenticateRequest
-        {
-            Username = "username2",
-            Password = "password2",
-            Role = "Test Role",
+            FirstName = "Invalid",
+            LastName = "User",
+            EmailAddress = "invalid@abv.bg",
+            Password = "1234",
+            RoleName = "not valid",
+            PhoneNumber = "123456789"
         };
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
             _logger = Substitute.For<ILogger<UsersRepository>>();
             _configuration = Substitute.For<IConfiguration>();
@@ -68,32 +79,63 @@ namespace DataAccessTests
             {
                 _usersRepository = new UsersRepository(_context, _configuration, _logger);
             }
+            await RoleSeeder.SeedRolesAsync(_context);
         }
 
         [Test]
-        public void Authenticate()
+        public async Task Register()
         {
-            var token = _usersRepository.Authenticate(validModel1);
+            var authenticatedUser = await _usersRepository.Register(validLibrarian);
+            Assert.That(authenticatedUser.JwtToken, Is.Not.Null.Or.Empty);
+            Assert.That(authenticatedUser.RefreshToken, Is.Not.Null.Or.Empty);
+
+            var librarianExists = await _context.Librarians.AnyAsync();
+            Assert.That(librarianExists);
+
+
+            authenticatedUser = await _usersRepository.Register(validCustomer);
+            Assert.That(authenticatedUser.JwtToken, Is.Not.Null.Or.Empty);
+            Assert.That(authenticatedUser.RefreshToken, Is.Not.Null.Or.Empty);
+
+            var customerExists = await _context.Customers.AnyAsync();
+            Assert.That(customerExists);
+
+
+            authenticatedUser = await _usersRepository.Register(validAdmin);
+            Assert.That(authenticatedUser.JwtToken, Is.Not.Null.Or.Empty);
+            Assert.That(authenticatedUser.RefreshToken, Is.Not.Null.Or.Empty);
+
+            var adminExists = await _context.Administrators.AnyAsync();
+            Assert.That(adminExists);
+        }
+
+        [Test]
+        public void Register_Fails()
+        {
+            Assert.ThrowsAsync<ArgumentException>(async delegate { await _usersRepository.Register(invalidUser); });
+        }
+
+        [Test]
+        public async Task Authenticate()
+        {
+            await _usersRepository.Register(validLibrarian);
+            await _usersRepository.Register(validCustomer);
+            await _usersRepository.Register(validAdmin);
+
+            var token = await _usersRepository.Authenticate(validLibrarian.EmailAddress, validLibrarian.Password);
             Assert.That(token, Is.Not.Null.Or.Empty);
 
-            token = _usersRepository.Authenticate(validModel1);
+            token = await _usersRepository.Authenticate(validCustomer.EmailAddress, validCustomer.Password);
             Assert.That(token, Is.Not.Null.Or.Empty);
 
-            token = _usersRepository.Authenticate(validModel3);
+            token = await _usersRepository.Authenticate(validAdmin.EmailAddress, validAdmin.Password);
             Assert.That(token, Is.Not.Null.Or.Empty);
         }
 
         [Test]
         public void Authenticate_Fails()
         {
-            var token = _usersRepository.Authenticate(invalidModel1);
-            Assert.That(token, Is.Null);
-
-            token = _usersRepository.Authenticate(invalidModel2);
-            Assert.That(token, Is.Null);
-
-            token = _usersRepository.Authenticate(invalidModel3);
-            Assert.That(token, Is.Null);
+            Assert.ThrowsAsync<ArgumentException>(async delegate { await _usersRepository.Authenticate(invalidUser.EmailAddress, invalidUser.Password); });
         }
     }
 }

@@ -8,6 +8,7 @@ using BusinessLayer.Interfaces.Users;
 using BusinessLayer.Services;
 using DataAccess;
 using DataAccess.Repositories;
+using DataAccess.Seeders;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -122,6 +123,7 @@ app.MapControllers();
 
 using var scope = app.Services.CreateScope();
 var dataContext = scope.ServiceProvider.GetService<DataContext>();
-dataContext?.Database.Migrate();
+await dataContext?.Database.MigrateAsync();
+await RoleSeeder.SeedRolesAsync(dataContext);
 
 app.Run();

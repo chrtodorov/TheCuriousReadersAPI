@@ -4,6 +4,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220221162925_NullableAdditionalInfo")]
+    partial class NullableAdditionalInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("ProductVersion", "6.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
@@ -73,22 +75,6 @@ namespace DataAccess.Migrations
                     b.HasKey("AddressId");
 
                     b.ToTable("Addresses");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.AdministratorEntity", b =>
-                {
-                    b.Property<Guid>("AdministartorId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("AdministartorId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Administrators");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.AuthorEntity", b =>
@@ -348,17 +334,6 @@ namespace DataAccess.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DataAccess.Entities.AdministratorEntity", b =>
-                {
-                    b.HasOne("DataAccess.Entities.UserEntity", "User")
-                        .WithMany("Administrators")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
                 {
                     b.HasOne("DataAccess.Entities.PublisherEntity", "Publisher")
@@ -456,8 +431,6 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("DataAccess.Entities.UserEntity", b =>
                 {
-                    b.Navigation("Administrators");
-
                     b.Navigation("Customers");
 
                     b.Navigation("Librarians");

@@ -5,17 +5,20 @@ namespace DataAccess;
 
 public class DataContext : DbContext
 {
-    public DataContext(DbContextOptions<DataContext> options) : base (options)
+    public DataContext(DbContextOptions<DataContext> options) : base(options)
     { }
 
     public DbSet<AuthorEntity> Authors { get; set; } = null!;
     public DbSet<BookEntity> Books { get; set; } = null!;
     public DbSet<BookItemEntity> BookItems { get; set; } = null!;
     public DbSet<PublisherEntity> Publishers { get; set; } = null!;
+    public DbSet<UserEntity> Users { get; set; } = null!;
+    public DbSet<AdministratorEntity> Administrators { get; set; } = null!;
     public DbSet<CustomerEntity> Customers { get; set; } = null!;
     public DbSet<LibrarianEntity> Librarians { get; set; } = null!;
     public DbSet<AddressEntity> Addresses { get; set; } = null!;
     public DbSet<RoleEntity> Roles { get; set; } = null!;
+    public DbSet<RefreshTokenEntity> RefreshTokens { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,22 +48,42 @@ public class DataContext : DbContext
                 .HasIndex(bi => bi.Barcode).IsUnique();
         });
 
+        modelBuilder.Entity<UserEntity>(builder =>
+        {
+            builder
+                .HasMany(u => u.Librarians)
+                .WithOne(l => l.User);
+
+            builder
+                .HasMany(u => u.Customers)
+                .WithOne(l => l.User);
+
+            builder
+                .HasMany(u => u.Administrators)
+                .WithOne(l => l.User);
+        });
+
         modelBuilder.Entity<CustomerEntity>(builder =>
         {
             builder
                 .HasOne(c => c.Address)
                 .WithOne(a => a.Customer)
                 .HasForeignKey<CustomerEntity>(c => c.AddressId);
-            builder
-                .HasOne(c => c.Role)
-                .WithMany(r => r.Customers);
         });
 
-        modelBuilder.Entity<LibrarianEntity>(builder =>
+        modelBuilder.Entity<RefreshTokenEntity>(builder =>
         {
             builder
-                .HasOne(c => c.Role)
-                .WithMany(r => r.Librarians);
+                .HasOne(t => t.User)
+                .WithOne(u => u.RefreshToken)
+                .HasForeignKey<RefreshTokenEntity>(t => t.UserId);
+        });
+
+        modelBuilder.Entity<RoleEntity>(builder =>
+        {
+            builder
+                .HasMany(r => r.Users)
+                .WithOne(u => u.Role);
         });
 
         modelBuilder.Entity<AuthorEntity>()
