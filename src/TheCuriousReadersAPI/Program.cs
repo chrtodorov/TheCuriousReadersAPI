@@ -58,6 +58,9 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy(Policies.RequireCustomerRole,
         policy => policy.RequireRole(Roles.Customer));
+
+    options.AddPolicy(Policies.RequireAdministratorOrLibrarianRole,
+        policy => policy.RequireRole(Roles.Administrator, Roles.Librarian));
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -125,5 +128,6 @@ using var scope = app.Services.CreateScope();
 var dataContext = scope.ServiceProvider.GetService<DataContext>();
 await dataContext?.Database.MigrateAsync();
 await RoleSeeder.SeedRolesAsync(dataContext);
+await UserSeeder.SeedUsersAsync(dataContext);
 
 app.Run();

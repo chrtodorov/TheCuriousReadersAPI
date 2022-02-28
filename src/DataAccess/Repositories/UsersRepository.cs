@@ -1,84 +1,66 @@
 ﻿using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.Users;
 using BusinessLayer.Models;
-using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace DataAccess
 {
     public class UsersRepository : IUsersRepository
     {
         private readonly DataContext _dbContext;
-        private readonly IConfiguration _configuration;
         private readonly ILogger<UsersRepository> _logger;
 
-        public UsersRepository(DataContext dbContext, IConfiguration configuration, ILogger<UsersRepository> logger)
+        public UsersRepository(DataContext dbContext,ILogger<UsersRepository> logger)
         {
             this._dbContext = dbContext;
-            this._configuration = configuration;
             this._logger = logger;
         }
-        public async Task<AuthenticatedUser> Authenticate(string email, string password)
+        public async Task<User> GetUser(string email, string password, bool hashedPassword = false)
         {
             var user = await _dbContext.Users
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.EmailAddress == email);
 
-            if (user is null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            if (user is null)
             {
-                _logger.LogInformation("Invalid credentials were provided from user: {@userEmail}", email);
-                throw new ArgumentException("Invalid credentials were provided!");
+                throw new ArgumentException($"User with email: {email} does not exist");
             }
 
-            var key = _configuration.GetSection("JwtSecret").Value;
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var tokenKey = Encoding.ASCII.GetBytes(key);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            if (user.Status == AccountStatus.Pending)
             {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Email, user.EmailAddress),
-                    new Claim(ClaimTypes.Role, user.Role.Name),
-                }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var jwtToken = tokenHandler.CreateToken(tokenDescriptor);
-            var jwtTokenString = tokenHandler.WriteToken(jwtToken);
-            var refreshToken = GenerateRefreshToken();
-
-            var currentUserToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(t => t.UserId == user.UserId);
-
-            if (currentUserToken is null)
-            {
-                refreshToken.User = user;
-                await _dbContext.AddAsync(refreshToken);
-            }
-            else
-            {
-                currentUserToken.Token = refreshToken.Token;
-                currentUserToken.ExpiresOn = refreshToken.ExpiresOn;
-                currentUserToken.User = user;
-                _dbContext.Update(currentUserToken);
+                throw new ArgumentException($"User with email: {email} is not approved");
             }
 
-            await _dbContext.SaveChangesAsync();
+            var passwordIsValid = hashedPassword ? user.Password == password : BCrypt.Net.BCrypt.Verify(password, user.Password);
 
-            _logger.LogInformation("Authenticated user: {@userEmail}", email);
+            if (!passwordIsValid)
+            {
+                throw new ArgumentException($"Invalid password was provided");
+            }
 
-            return new AuthenticatedUser($"{user.FirstName} {user.LastName}", user.EmailAddress, user.Role.Name, jwtTokenString, refreshToken.Token);
+            _logger.LogInformation("Get user: {@userEmail}", email);
+
+            return user.ToUser();
         }
 
-        public async Task<AuthenticatedUser> Register(User user)
+        public async Task<User> GetUser(string email)
+        {
+            var userEntity = await _dbContext.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.EmailAddress == email);
+
+            if (userEntity is null)
+            {
+                throw new ArgumentException($"User with email: {email} does not exist");
+            }
+
+            return userEntity.ToUser();
+        }
+
+        public async Task Register(User user)
         {
             var role = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == user.RoleName.ToLower());
 
@@ -86,7 +68,16 @@ namespace DataAccess
             {
                 throw new ArgumentException($"Role with name {user.RoleName} does not exist!");
             }
+
+            var emailExists = await _dbContext.Users.AnyAsync(u => u.EmailAddress == user.EmailAddress);
+
+            if (emailExists)
+            {
+                throw new ArgumentException($"Email: {user.EmailAddress} already exists!");
+            }
+
             var userEntity = user.ToUserEntity(role);
+            userEntity.Status = AccountStatus.Pending;
 
             await _dbContext.Users.AddAsync(userEntity);
 
@@ -106,29 +97,69 @@ namespace DataAccess
             }
 
             await _dbContext.SaveChangesAsync();
-            return await Authenticate(user.EmailAddress, user.Password);
         }
 
-        private RefreshTokenEntity GenerateRefreshToken()
+        public async Task<User> ApproveUser(Guid userId, ClaimsPrincipal approver)
         {
-            var refreshToken = new RefreshTokenEntity
+            var userEntity = await _dbContext.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (userEntity is null)
             {
-                Token = GetUniqueToken(),
-                ExpiresOn = DateTime.UtcNow.AddDays(7),
-            };
+                throw new ArgumentException($"User with id: {userId} does not exist");
+            }
 
-            return refreshToken;
+            if (approver.IsInRole(Roles.Librarian) && userEntity.Role.Name != Roles.Customer)
+            {
+                throw new InvalidOperationException();
+            }
+
+            userEntity.Status = AccountStatus.Approved;
+            _dbContext.Update(userEntity);
+            await _dbContext.SaveChangesAsync();
+
+            return userEntity.ToUser();
         }
 
-        private string GetUniqueToken()
+        public async Task RejectUser(Guid userId, ClaimsPrincipal rejecter)
         {
-            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-            var tokenIsUnique = !_dbContext.Users.Any(u => u.RefreshToken.Token == token);
+            var userEntity = await _dbContext.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
 
-            if (!tokenIsUnique)
-                return GetUniqueToken();
+            if (userEntity is null)
+            {
+                throw new ArgumentException($"User with id: {userId} does not exist");
+            }
 
-            return token;
+            if (rejecter.IsInRole(Roles.Librarian) && userEntity.Role.Name != Roles.Customer)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _dbContext.Remove(userEntity);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetPendingUsers()
+        {
+            return await _dbContext.Users
+                .Include(u => u.Role)
+                .Where(u => u.Status == AccountStatus.Pending)
+                .Select(u => u.ToUser())
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetPendingCustomers()
+        {
+            return await _dbContext.Users
+                .Include(u => u.Role)
+                .Where(u => u.Status == AccountStatus.Pending && u.Role.Name == Roles.Customer)
+                .Select(u => u.ToUser())
+                .AsNoTracking()
+                .ToListAsync();
         }
     }
 }

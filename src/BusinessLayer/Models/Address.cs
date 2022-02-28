@@ -9,20 +9,23 @@ namespace BusinessLayer.Models
         public string Country { get; set; } = null!;
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(128)]
         public string City { get; set; } = null!;
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(256)]
         public string Street { get; set; } = null!;
 
         [Required]
-        public int StreetNumber { get; set; }
+        public string StreetNumber { get; set; }
 
-        public int? BuildingNumber { get; set; }
+        [MaxLength(65)]
+        public string? BuildingNumber { get; set; }
 
-        public int? ApartmentNumber { get; set; }
+        [MaxLength(65)]
+        public string? ApartmentNumber { get; set; }
 
+        [MaxLength(1028)]
         public string? AdditionalInfo { get; set; } = null!;
     }
 }

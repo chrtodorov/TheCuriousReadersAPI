@@ -18,7 +18,6 @@ public class DataContext : DbContext
     public DbSet<LibrarianEntity> Librarians { get; set; } = null!;
     public DbSet<AddressEntity> Addresses { get; set; } = null!;
     public DbSet<RoleEntity> Roles { get; set; } = null!;
-    public DbSet<RefreshTokenEntity> RefreshTokens { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -61,6 +60,9 @@ public class DataContext : DbContext
             builder
                 .HasMany(u => u.Administrators)
                 .WithOne(l => l.User);
+
+            builder
+                .HasIndex(u => u.EmailAddress).IsUnique();
         });
 
         modelBuilder.Entity<CustomerEntity>(builder =>
@@ -69,14 +71,6 @@ public class DataContext : DbContext
                 .HasOne(c => c.Address)
                 .WithOne(a => a.Customer)
                 .HasForeignKey<CustomerEntity>(c => c.AddressId);
-        });
-
-        modelBuilder.Entity<RefreshTokenEntity>(builder =>
-        {
-            builder
-                .HasOne(t => t.User)
-                .WithOne(u => u.RefreshToken)
-                .HasForeignKey<RefreshTokenEntity>(t => t.UserId);
         });
 
         modelBuilder.Entity<RoleEntity>(builder =>
