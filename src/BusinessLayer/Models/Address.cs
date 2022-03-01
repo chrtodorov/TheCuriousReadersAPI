@@ -6,10 +6,12 @@ namespace BusinessLayer.Models
     {
         [Required]
         [MaxLength(60)]
+        [RegularExpression(@"^([\sA-Za-zа-яА-Я])+$")]
         public string Country { get; set; } = null!;
 
         [Required]
         [MaxLength(128)]
+        [RegularExpression(@"^([\sA-Za-zа-яА-Я])+$")]
         public string City { get; set; } = null!;
 
         [Required]
@@ -17,7 +19,7 @@ namespace BusinessLayer.Models
         public string Street { get; set; } = null!;
 
         [Required]
-        public string StreetNumber { get; set; }
+        public string StreetNumber { get; set; } = null!;
 
         [MaxLength(65)]
         public string? BuildingNumber { get; set; }
