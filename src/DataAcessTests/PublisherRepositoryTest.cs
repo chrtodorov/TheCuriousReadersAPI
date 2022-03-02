@@ -139,5 +139,18 @@ namespace DataAccessTests
 
             Assert.That(resultok, Is.True);
         }
+
+        [Test]
+        public async Task IsPublisherNameExisting()
+        {
+            _context.Publishers.Add(publisherDataEntity);
+            await _context.SaveChangesAsync();
+
+            var test = _context.Publishers.FirstOrDefault();
+
+            var result = await _publishersRepository.IsPublisherNameExisting(test!.Name);
+
+            Assert.IsTrue(result);
+        }
     }
 }

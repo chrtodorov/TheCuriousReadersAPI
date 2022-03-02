@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Authorize(Policy = Policies.RequireLibrarianRole)]
+    [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
     [Route("api/[controller]")]
     [ApiController]
     public class PublishersController : ControllerBase
@@ -30,9 +30,8 @@ namespace API.Controllers
             var result = await _publishersService.Get(publisherId);
 
             if (result is null)
-            {
                 return NotFound("Publisher with such Id is not found!");
-            }
+            
             return Ok(result);
         }
 
@@ -43,10 +42,9 @@ namespace API.Controllers
             _logger.LogInformation("Get All Publishers");
             var result = await _publishersService.GetAll();
 
-            if (result is null)
-            {
+            if (!result.Any())
                 return NotFound("No existing publishers");
-            }
+            
             return Ok(result);
         }
 
@@ -56,10 +54,15 @@ namespace API.Controllers
             _logger.LogInformation("Create Publisher" + publisherRequest.ToString());
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
+            try
+            {
+                return Ok(await _publishersService.Create(publisherRequest.ToPublisher()));
             }
-            return Ok(await _publishersService.Create(publisherRequest.ToPublisher()));
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPut ("{publisherId}")]
@@ -68,16 +71,15 @@ namespace API.Controllers
             _logger.LogInformation("Update Publisher" + publisherRequest.ToString());
 
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
-
-            if (!await _publishersService.Contains(publisherId))
+            try
             {
-                return NotFound("Publisher with such Id cannot be found and updated!");
+                return Ok(await _publishersService.Update(publisherId, publisherRequest.ToPublisher()));
             }
-
-            return Ok(await _publishersService.Update(publisherId, publisherRequest.ToPublisher()));
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpDelete ("{publisherId}")]
@@ -85,13 +87,15 @@ namespace API.Controllers
         {
             _logger.LogInformation("Delete Publisher with {@PublisherId}", publisherId);
 
-            if (!await _publishersService.Contains(publisherId))
+            try
             {
-                return NotFound("Publisher with such Id is not found!");
+                await _publishersService.Delete(publisherId);
+                return Ok();
             }
-            await _publishersService.Delete(publisherId);
-            return Ok("Publisher deleted with ID:" + publisherId);
+            catch (Exception e)
+            {
+                return NotFound(e.Message);
+            }
         }
-
     }
 }

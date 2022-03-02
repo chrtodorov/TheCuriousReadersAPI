@@ -144,23 +144,6 @@ namespace APITests.Publishers
         }
 
         [Test]
-        public async Task UpdateAsync_NotFound()
-        {
-            _publishersService.Update(Arg.Any<Guid>(), Arg.Any<Publisher>()).Returns(publisherData);
-
-            _publishersService.Contains(Arg.Any<Guid>()).Returns(false);
-
-            var resultU = await _publishersController.Update(publisherData.PublisherId, publisherRequest);
-
-            await _publishersService.DidNotReceive().Update(Arg.Any<Guid>(), Arg.Any<Publisher>());
-
-            var statusResult = resultU as ObjectResult;
-
-            Assert.IsNotNull(statusResult);
-            Assert.AreEqual(404, statusResult.StatusCode);
-        }
-
-        [Test]
         public async Task DeleteAsync()
         {
             await _publishersService.Delete(Arg.Any<Guid>());
@@ -168,18 +151,6 @@ namespace APITests.Publishers
 
             var resultD = await _publishersController.Delete(publisherData.PublisherId);
             await _publishersService.Received(1).Delete(Arg.Any<Guid>());
-
-            Assert.That(resultD, Is.Not.Null);
-        }
-
-        [Test]
-        public async Task DeleteAsync_NotFound()
-        {
-            await _publishersService.Delete(Arg.Any<Guid>());
-            _publishersService.Contains(Arg.Any<Guid>()).Returns(false);
-
-            var resultD = await _publishersController.Delete(publisherData.PublisherId);
-            await _publishersService.DidNotReceive().Delete(Arg.Any<Guid>());
 
             Assert.That(resultD, Is.Not.Null);
         }

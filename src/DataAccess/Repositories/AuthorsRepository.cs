@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Interfaces.Authors;
 using BusinessLayer.Models;
+using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -21,14 +22,24 @@ public class AuthorsRepository : IAuthorsRepository
     {
         _logger.LogInformation("Get Author with {@AuthorId}", authorId);
 
-        var authorEntity = await _dataContext.Authors.FindAsync(authorId);
+        var authorEntity = await GetById(authorId, false);
 
         return authorEntity?.ToAuthor();
+    }
+    public async Task<AuthorEntity?> GetById(Guid authorId, bool tracking = true)
+    {
+        var query =  _dataContext.Authors
+            .Where(a => a.AuthorId == authorId);
+
+        if (!tracking)
+            query.AsNoTracking();
+        
+        return await query.FirstOrDefaultAsync();
     }
 
     public async Task<List<Author>> GetAuthors(AuthorParameters authorParameters)
     {
-        var query = _dataContext.Authors.AsQueryable();
+        var query = _dataContext.Authors.AsNoTracking();
         
         if (!string.IsNullOrEmpty(authorParameters.Name))
         {
@@ -51,7 +62,15 @@ public class AuthorsRepository : IAuthorsRepository
 
         await _dataContext.Authors.AddAsync(authorEntity);
 
-        await _dataContext.SaveChangesAsync();
+        try
+        {
+            await _dataContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException e)
+        {
+            _logger.LogCritical(e.ToString());
+            throw;
+        }
 
         _logger.LogInformation("Create Author with {@AuthorId}", authorEntity.AuthorId);
         return authorEntity.ToAuthor();
@@ -59,7 +78,7 @@ public class AuthorsRepository : IAuthorsRepository
 
     public async Task<Author?> Update(Guid authorId, Author author)
     {
-        var authorEntity = await _dataContext.Authors.FindAsync(authorId);
+        var authorEntity = await GetById(authorId);
 
         if (authorEntity is null)
             return null;
@@ -67,8 +86,16 @@ public class AuthorsRepository : IAuthorsRepository
         authorEntity.Name = author.Name;
         authorEntity.Bio = author.Bio;
 
-        await _dataContext.SaveChangesAsync();
-
+        try
+        {
+            await _dataContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException e)
+        {
+            _logger.LogCritical(e.ToString());
+            throw;
+        }
+        
         _logger.LogInformation("Update Author with {@AuthorId}", authorEntity.AuthorId);
 
         return authorEntity.ToAuthor();
@@ -76,13 +103,20 @@ public class AuthorsRepository : IAuthorsRepository
 
     public async Task Delete(Guid authorId)
     {
-        var authorEntity = await _dataContext.Authors.FindAsync(authorId);
+        var authorEntity = await GetById(authorId);
 
         if (authorEntity is not null)
         {
             _dataContext.Authors.Remove(authorEntity);
-
-            await _dataContext.SaveChangesAsync();
+            try
+            {
+                await _dataContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException e)
+            {
+                _logger.LogCritical(e.ToString());
+                throw;
+            }
 
             _logger.LogInformation("Deleting Author with {@AuthorId}", authorId);
         }
@@ -95,4 +129,8 @@ public class AuthorsRepository : IAuthorsRepository
         return await _dataContext.Authors.AnyAsync(a => a.AuthorId == id);
     }
 
+    public async Task<bool> IsAuthorNameExisting(string name)
+    {
+        return await _dataContext.Authors.AnyAsync(a => a.Name == name);
+    }
 }

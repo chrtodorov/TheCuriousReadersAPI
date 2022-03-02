@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Authorize(Policy = Policies.RequireLibrarianRole)]
+    [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthorsController : ControllerBase
@@ -42,7 +42,7 @@ namespace API.Controllers
 
             var authors = await _authorsService.GetAuthors(authorParameters);
             
-            if (authors is null)
+            if (!authors.Any())
             {
                 return NotFound("No authors found");
             }
@@ -60,22 +60,34 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(await _authorsService.Create(authorRequest.ToAuthor()));
+            try
+            {
+                return Ok(await _authorsService.Create(authorRequest.ToAuthor()));
+            }
+
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPut("{authorId}")]
-        public async Task<IActionResult> Update(Guid authorId, [FromBody] AuthorsRequest authorsRequest)
+        public async Task<IActionResult> Update(Guid authorId, [FromBody] AuthorsRequest authorRequest)
         {
-            _logger.LogInformation("Update Author: " + authorsRequest.ToString());
+            _logger.LogInformation("Update Author: " + authorRequest.ToString());
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!await _authorsService.Contains(authorId))
-                return NotFound("Author with such Id cannot be found and updated");
+            try
+            {
+                return Ok(await _authorsService.Update(authorId, authorRequest.ToAuthor()));
+            }
 
-            return Ok(await _authorsService.Update(authorId, authorsRequest.ToAuthor()));
-
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpDelete("{authorId}")]
@@ -83,11 +95,15 @@ namespace API.Controllers
         {
             _logger.LogInformation("Delete Author with {@authorId}", authorId);
 
-            if (!await _authorsService.Contains(authorId)) 
-                return NotFound("Author with such Id does not exist!");
-
-            await _authorsService.Delete(authorId);
-            return Ok("Author deleted ID: " + authorId);
+            try
+            {
+                await _authorsService.Delete(authorId);
+                return Ok();
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
         }
     }
 }

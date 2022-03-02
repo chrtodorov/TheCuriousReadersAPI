@@ -17,7 +17,8 @@ public static class BookMapper
             Genre = bookEntity.Genre,
             CoverUrl = bookEntity.CoverUrl,
             PublisherId = bookEntity.PublisherId,
-            AuthorsIds = bookEntity.Authors?.Select(a => a.AuthorId).ToList()
+            AuthorsIds = bookEntity.Authors?.Select(a => a.AuthorId).ToList(),
+            BookItems = bookEntity.BookItems?.Select(a => a.ToBookItem()).ToList()
         };
     }
 
@@ -31,7 +32,8 @@ public static class BookMapper
             Genre = book.Genre,
             CoverUrl = book.CoverUrl,
             PublisherId = book.PublisherId,
-            Authors = book.AuthorsIds?.Select(a => new AuthorEntity(){ AuthorId = a}).ToList()
+            Authors = book.AuthorsIds?.Select(a => new AuthorEntity(){ AuthorId = a}).ToList(),
+            BookItems = book.BookItems?.Select(a => a.ToBookItemEntity()).ToList()
         };
     }
 
@@ -45,7 +47,8 @@ public static class BookMapper
             Genre = bookRequest.Genre,
             CoverUrl = bookRequest.CoverUrl,
             PublisherId = bookRequest.PublisherId,
-            AuthorsIds = bookRequest.AuthorsIds
+            AuthorsIds = bookRequest.AuthorsIds,
+            BookItems = bookRequest.BookCopies?.Select(a => a.ToBookItem()).ToList()
         };
     }
 }

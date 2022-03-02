@@ -10,4 +10,5 @@ public interface IPublishersRepository
     Task<Publisher?> Update(Guid publisherId, Publisher publisher);
     Task Delete(Guid publisherId);
     Task<bool> Contains(Guid publisherId);
+    Task<bool> IsPublisherNameExisting(string name);
 }

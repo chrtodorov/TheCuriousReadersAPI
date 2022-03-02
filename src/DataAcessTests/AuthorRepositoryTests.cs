@@ -120,4 +120,17 @@ public class AuthorRepositoryTests
 
         Assert.That(resultok, Is.True);
     }
+
+    [Test]
+    public async Task IsAuthorNameExisting()
+    {
+        _context.Authors.Add(authorDataEntity);
+        await _context.SaveChangesAsync();
+
+        var authorEntity = _context.Authors.FirstOrDefault();
+
+        var result = await _authorsRepository.IsAuthorNameExisting(authorEntity!.Name);
+
+        Assert.IsTrue(result);
+    }
 }

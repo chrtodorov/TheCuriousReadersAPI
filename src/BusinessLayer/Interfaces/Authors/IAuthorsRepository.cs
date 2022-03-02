@@ -10,4 +10,5 @@ public interface IAuthorsRepository
     Task<Author?> Update(Guid authorId, Author author);
     Task Delete(Guid id);
     Task<bool> Contains(Guid id);
+    Task<bool> IsAuthorNameExisting(string name);
 }

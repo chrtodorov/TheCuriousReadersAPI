@@ -18,7 +18,4 @@ public class BookItem
 
     [Required]
     public BookItemStatusEnumeration BookStatus { get; set; }
-
-    [Required]
-    public Guid? BookId { get; set; }
 }

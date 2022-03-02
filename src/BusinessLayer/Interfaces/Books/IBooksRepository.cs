@@ -10,4 +10,5 @@ public interface IBooksRepository
     Task<Book?> Update(Guid bookId, Book book);
     Task Delete(Guid bookId);
     Task<bool> Contains(Guid bookId);
+    Task<bool> IsIsbnExisting(string isbn);
 }

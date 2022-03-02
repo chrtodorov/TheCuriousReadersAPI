@@ -22,8 +22,7 @@ namespace BusinessLayerTests.BookItems
             Barcode = "1234567",
             BorrowedDate = new DateTime(2015 - 06 - 12),
             ReturnDate = new DateTime(2015 - 07 - 12),
-            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available,
-            BookId = Guid.Parse("399b5384-870e-4cc4-a690-ec466f63dd98")
+            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available
         };
 
         [SetUp]
@@ -64,13 +63,13 @@ namespace BusinessLayerTests.BookItems
             Assert.AreEqual(bookItemC.BorrowedDate, bookItemsData.BorrowedDate);
             Assert.AreEqual(bookItemC.ReturnDate, bookItemsData.ReturnDate);
             Assert.AreEqual(bookItemC.BookStatus, bookItemsData.BookStatus);
-            Assert.AreEqual(bookItemC.BookId, bookItemsData.BookId);
         }
 
 
         [Test]
         public async Task UpdateAsync()
         {
+            _bookItemsRepository.Contains(bookItemsData.BookItemId).Returns(true);
             _bookItemsRepository.Update(bookItemsData.BookItemId, bookItemsData).Returns(bookItemsData);
             var bookItemU = await _bookItemsService.Update(bookItemsData.BookItemId, bookItemsData);
             await _bookItemsRepository.Received(1).Update(bookItemsData.BookItemId, bookItemsData);
@@ -79,12 +78,13 @@ namespace BusinessLayerTests.BookItems
             Assert.AreEqual(bookItemU.BorrowedDate, bookItemsData.BorrowedDate);
             Assert.AreEqual(bookItemU.ReturnDate, bookItemsData.ReturnDate);
             Assert.AreEqual(bookItemU.BookStatus, bookItemsData.BookStatus);
-            Assert.AreEqual(bookItemU.BookId, bookItemsData.BookId);
 
         }
         [Test]
         public async Task UpdateAsyncFail()
         {
+
+            _bookItemsRepository.Contains(bookItemsData.BookItemId).Returns(true);
             _bookItemsRepository.Update(bookItemsData.BookItemId, bookItemsData).Returns(bookItemsData);
             var bookItemU = await _bookItemsService.Update(bookItemsData.BookItemId, bookItemsData);
             await _bookItemsRepository.Received(1).Update(bookItemsData.BookItemId, bookItemsData);
@@ -101,12 +101,12 @@ namespace BusinessLayerTests.BookItems
             Assert.AreNotEqual(bookItemU.BorrowedDate, fakeBorrowedDate);
             Assert.AreNotEqual(bookItemU.ReturnDate, fakeReturnDate);
             Assert.AreNotEqual(bookItemU.BookStatus, fakeBookStatus);
-            Assert.AreNotEqual(bookItemU.BookId, fakeBookId);
         }
 
         [Test]
         public async Task DeleteAsync()
         {
+            _bookItemsRepository.Contains(bookItemsData.BookItemId).Returns(true);
             var deleted = _bookItemsService.Delete(bookItemsData.BookItemId);
             await _bookItemsRepository.Received(1).Delete(bookItemsData.BookItemId);
         }
@@ -119,6 +119,18 @@ namespace BusinessLayerTests.BookItems
             var result = await _bookItemsService.Contains(bookItemsData.BookItemId);
             await _bookItemsRepository.Received(1).Contains(bookItemsData.BookItemId);
             Assert.That(result, Is.EqualTo(expectedRes));
+        }
+
+        [Test]
+        public async Task IsBarcodeExisting()
+        {
+            _bookItemsRepository.IsBarcodeExisting(bookItemsData.Barcode).Returns(true);
+
+            var result = await _bookItemsService.IsBarcodeExisting(bookItemsData.Barcode);
+
+            await _bookItemsRepository.Received(1).IsBarcodeExisting(bookItemsData.Barcode);
+
+            Assert.IsTrue(result);
         }
     }
 }

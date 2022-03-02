@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
+using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -21,16 +22,25 @@ public class BooksRepository : IBooksRepository
     {
         _logger.LogInformation("Get Book with {@BookId}", bookId);
 
-        var bookEntity = await _dataContext.Books
-            .Include(b => b.Authors)
-            .FirstOrDefaultAsync(b => b.BookId == bookId);
+        var bookEntity = await GetById(bookId, false);
 
         return bookEntity?.ToBook();
     }
 
+    public async Task<BookEntity?> GetById(Guid bookId, bool tracking = true)
+    {
+        var query = _dataContext.Books
+            .Include(b => b.Authors)
+            .Where(b => b.BookId == bookId);
+        if (!tracking)
+            query.AsNoTracking();
+
+        return await query.FirstOrDefaultAsync();
+    }
+
     public async Task<PagedList<Book>> GetBooks(BookParameters bookParameters)
     {
-        var query = _dataContext.Books.AsQueryable();
+        var query = _dataContext.Books.Include(b => b.Authors).AsNoTracking();
 
         if (!string.IsNullOrEmpty(bookParameters.Title))
         {
@@ -59,7 +69,7 @@ public class BooksRepository : IBooksRepository
         }
 
         await query
-            .Include(b => b.Authors)
+            
             .OrderBy(b => b.Title)
             .ToListAsync();
 
@@ -80,7 +90,15 @@ public class BooksRepository : IBooksRepository
         }
             
         await _dataContext.Books.AddAsync(bookEntity);
-        await _dataContext.SaveChangesAsync();
+        try
+        {
+            await _dataContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException e)
+        {
+            _logger.LogCritical(e.ToString());
+            throw;
+        }
 
         _logger.LogInformation("Create Book with {@BookId}", bookEntity.BookId);
 
@@ -91,9 +109,7 @@ public class BooksRepository : IBooksRepository
     {
         var updatedBook = book.ToBookEntity();
 
-        var bookToUpdate = await _dataContext.Books
-            .Include(b => b.Authors)
-            .FirstOrDefaultAsync(b => b.BookId == bookId);
+        var bookToUpdate = await GetById(bookId);
 
         if (bookToUpdate is null) return null;
 
@@ -121,19 +137,36 @@ public class BooksRepository : IBooksRepository
 
         _logger.LogInformation("Update Book with {@BookId}", bookToUpdate.BookId);
 
-        await _dataContext.SaveChangesAsync();
+        try
+        {
+            await _dataContext.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogCritical(e.ToString());
+            throw;
+        }
+        
         return bookToUpdate.ToBook();
     }
 
     public async Task Delete(Guid bookId)
     {
-        var bookEntity = await _dataContext.Books.FindAsync(bookId);
+        var bookEntity = await GetById(bookId);
 
         if (bookEntity is not null)
         {
             _dataContext.Books.Remove(bookEntity);
 
-            await _dataContext.SaveChangesAsync();
+            try
+            {
+                await _dataContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException e)
+            {
+                _logger.LogCritical(e.ToString());
+                throw;
+            }
 
             _logger.LogInformation("Deleting Book with {@BookId}", bookId);
         }
@@ -144,5 +177,10 @@ public class BooksRepository : IBooksRepository
     public async Task<bool> Contains(Guid bookId)
     {
         return await _dataContext.Books.AnyAsync(b => b.BookId == bookId);
+    }
+
+    public async Task<bool> IsIsbnExisting(string isbn)
+    {
+        return await _dataContext.Books.AnyAsync(b => b.Isbn == isbn);
     }
 }

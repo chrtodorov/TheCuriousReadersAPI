@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using BusinessLayer.Models;
 
 namespace BusinessLayer.Requests;
 
@@ -30,4 +31,6 @@ public class BookRequest
     [Required(ErrorMessage = "At least one author is required!")]
     [MinLength(1)]
     public ICollection<Guid>? AuthorsIds { get; set; }
+
+    public ICollection<BookItemsRequest>? BookCopies { get; set; }
 }

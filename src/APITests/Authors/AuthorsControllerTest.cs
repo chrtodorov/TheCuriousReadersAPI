@@ -129,23 +129,6 @@ public class AuthorsControllerTest
     }
 
     [Test]
-    public async Task UpdateAsync_NotFound()
-    {
-        _authorsService.Update(Arg.Any<Guid>(), Arg.Any<Author>()).Returns(authorData);
-
-        _authorsService.Contains(Arg.Any<Guid>()).Returns(false);
-
-        var resultU = await _authorsController.Update(authorData.AuthorId, authorsRequest);
-
-        await _authorsService.DidNotReceive().Update(Arg.Any<Guid>(), Arg.Any<Author>());
-
-        var statusResult = resultU as ObjectResult;
-
-        Assert.IsNotNull(statusResult);
-        Assert.AreEqual(404, statusResult.StatusCode);
-    }
-
-    [Test]
     public async Task DeleteAsync()
     {
         await _authorsService.Delete(Arg.Any<Guid>());
@@ -153,18 +136,6 @@ public class AuthorsControllerTest
 
         var resultD = await _authorsController.Delete(authorData.AuthorId);
         await _authorsService.Received(1).Delete(Arg.Any<Guid>());
-
-        Assert.That(resultD, Is.Not.Null);
-    }
-
-    [Test]
-    public async Task DeleteAsync_NotFound()
-    {
-        await _authorsService.Delete(Arg.Any<Guid>());
-        _authorsService.Contains(Arg.Any<Guid>()).Returns(false);
-
-        var resultD = await _authorsController.Delete(authorData.AuthorId);
-        await _authorsService.DidNotReceive().Delete(Arg.Any<Guid>());
 
         Assert.That(resultD, Is.Not.Null);
     }

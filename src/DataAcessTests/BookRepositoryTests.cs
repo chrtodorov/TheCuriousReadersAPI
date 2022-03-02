@@ -343,4 +343,17 @@ public class BookRepositoryTests
 
         Assert.IsFalse(result);
     }
+
+    [Test]
+    public async Task IsIsbnExisting()
+    {
+        _context.Books.Add(_bookDataEntity);
+        await _context.SaveChangesAsync();
+
+        var testBookEntity = _context.Books.FirstOrDefault();
+
+        var result = await _booksRepository.IsIsbnExisting(testBookEntity!.Isbn);
+
+        Assert.IsTrue(result);
+    }
 }

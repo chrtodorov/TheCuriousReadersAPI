@@ -85,6 +85,7 @@ public class BooksServiceTests
     [Test]
     public async Task UpdateAsync_Success()
     {
+        _booksRepository.Contains(_bookData.BookId).Returns(true);
         _booksRepository.Update(_bookData.BookId, _bookData).Returns(_bookData);
 
         var bookUpdate = await _booksService.Update(_bookData.BookId, _bookData);
@@ -97,6 +98,7 @@ public class BooksServiceTests
     [Test]
     public async Task UpdateAsync_Fail()
     {
+        _booksRepository.Contains(_bookData.BookId).Returns(true);
         _booksRepository.Update(_bookData.BookId, _bookData).Returns(_bookData);
 
         var bookUpdate = await _booksService.Update(_bookData.BookId, _bookData);
@@ -125,6 +127,7 @@ public class BooksServiceTests
     [Test]
     public async Task DeleteAsync()
     {
+        _booksRepository.Contains(_bookData.BookId).Returns(true);
         await _booksService.Delete(_bookData.BookId);
 
         await _booksRepository.Received(1).Delete(_bookData.BookId);

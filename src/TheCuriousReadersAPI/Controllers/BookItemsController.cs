@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Authorize(Policy = Policies.RequireLibrarianRole)]
+    [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
     [Route("api/[controller]")]
     [ApiController]
     public class BookItemsController : ControllerBase
@@ -45,7 +45,15 @@ namespace API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            return Ok(await _bookItemsService.Create(bookItemsRequest.ToBookItem()));
+
+            try
+            {
+                return Ok(await _bookItemsService.Create(bookItemsRequest.ToBookItem()));
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPut("{bookItemId}")]
@@ -57,13 +65,15 @@ namespace API.Controllers
             {
                 return BadRequest(ModelState);
             }
-        
-            if (!await _bookItemsService.Contains(bookItemId))
+
+            try
             {
-                return NotFound("Book Item with such Id cannot be found and updated!");
-            }                                 
-        
-            return Ok(await _bookItemsService.Update(bookItemId, bookItemsRequest.ToBookItem()));
+                return Ok(await _bookItemsService.Update(bookItemId, bookItemsRequest.ToBookItem()));
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPut("{bookItemId}/{bookItemStatus}")]
@@ -76,13 +86,14 @@ namespace API.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (!await _bookItemsService.Contains(bookItemId))
+            try
             {
-                return NotFound("Book Item with such Id cannot be found and updated!");
+                return Ok(await _bookItemsService.UpdateBookItemStatus(bookItemId, bookItemStatus));
             }
-
-            return Ok(await _bookItemsService.UpdateBookItemStatus(bookItemId, bookItemStatus));
-        
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }                                    
         }
 
         [HttpDelete("{bookItemId}")]
@@ -90,12 +101,15 @@ namespace API.Controllers
         {
             _logger.LogInformation("Delete Book Item with {@BookItemId}", bookItemId);
 
-            if (!await _bookItemsService.Contains(bookItemId))
+            try
             {
-                return NotFound("Book Item with such Id is not found!");
+                await _bookItemsService.Delete(bookItemId);
+                return Ok();
             }
-            await _bookItemsService.Delete(bookItemId);
-            return Ok("Book Item deleted with ID:" + bookItemId);
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
     }
 }

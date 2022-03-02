@@ -13,8 +13,7 @@ public static class BookItemMapper
             Barcode = bookItem.Barcode,
             BorrowedDate = bookItem.BorrowedDate,
             ReturnDate = bookItem.ReturnDate,
-            BookStatus = bookItem.BookStatus,
-            BookId = bookItem.BookId
+            BookStatus = bookItem.BookStatus
         };
     }
 
@@ -26,7 +25,6 @@ public static class BookItemMapper
             Barcode = bookItemEntity.Barcode,
             BorrowedDate = bookItemEntity.BorrowedDate,
             ReturnDate = bookItemEntity.ReturnDate,
-            BookId = bookItemEntity.BookId,
             BookStatus = bookItemEntity.BookStatus
         };
     }
@@ -38,7 +36,6 @@ public static class BookItemMapper
             Barcode = bookItemsRequest.Barcode,
             BorrowedDate= bookItemsRequest.BorrowedDate,
             ReturnDate= bookItemsRequest.ReturnDate,
-            BookId= bookItemsRequest.BookId,
             BookStatus = bookItemsRequest.BookStatus
         };
     }

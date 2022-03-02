@@ -192,23 +192,6 @@ public class BooksControllerTests
     }
 
     [Test]
-    public async Task UpdateAsync_NotFound()
-    {
-        _booksService.Update(Arg.Any<Guid>(), Arg.Any<Book>()).Returns(_bookData);
-
-        _booksService.Contains(Arg.Any<Guid>()).Returns(false);
-
-        var result = await _booksController.Update(_bookData.BookId, _bookRequestData);
-
-        await _booksService.DidNotReceive().Update(Arg.Any<Guid>(), Arg.Any<Book>());
-
-        var notFoundResult = result as NotFoundObjectResult;
-
-        Assert.IsNotNull(notFoundResult);
-        Assert.AreEqual(404, notFoundResult?.StatusCode);
-    }
-
-    [Test]
     public async Task UpdateAsync_InvalidModel()
     {
         _booksController.ModelState.AddModelError("test", "test");
@@ -232,18 +215,5 @@ public class BooksControllerTests
         await _booksService.Received(1).Delete(Arg.Any<Guid>());
 
         Assert.IsNotNull(result);
-    }
-
-    [Test]
-    public async Task DeleteAsync_NotFound()
-    {
-        await _booksService.Delete(Arg.Any<Guid>());
-
-        _booksService.Contains(Arg.Any<Guid>()).Returns(false);
-
-        var resultD = await _booksController.Delete(_bookData.BookId);
-        await _booksService.DidNotReceive().Delete(Arg.Any<Guid>());
-
-        Assert.IsNotNull(resultD);
     }
 }

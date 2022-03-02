@@ -32,4 +32,6 @@ public class Book
     [Required]
     [MinLength(1)]
     public ICollection<Guid>? AuthorsIds { get; set; }
+
+    public ICollection<BookItem>? BookItems { get; set; }
 }

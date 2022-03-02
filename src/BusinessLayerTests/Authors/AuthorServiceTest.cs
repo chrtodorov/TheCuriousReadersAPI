@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BusinessLayer.Interfaces.Authors;
 using BusinessLayer.Models;
@@ -99,6 +100,7 @@ public class AuthorServiceTest
     [Test]
     public async Task DeleteAsync()
     {
+        _authorsRepository.Contains(authorData.AuthorId).Returns(true);
         var deleted = _authorsService.Delete(authorData.AuthorId );
         await _authorsRepository.Received(1).Delete(authorData.AuthorId );
     }
@@ -111,5 +113,17 @@ public class AuthorServiceTest
         var result = await _authorsService.Contains(authorData.AuthorId );
         await _authorsRepository.Received(1).Contains(authorData.AuthorId );
         Assert.That(result,Is.EqualTo(expectedRes)); 
+    }
+
+    [Test]
+    public async Task IsAuthorNameExisting()
+    {
+        _authorsRepository.IsAuthorNameExisting(authorData.Name).Returns(true);
+
+        var result = await _authorsService.IsAuthorNameExisting(authorData.Name);
+
+        await _authorsRepository.Received(1).IsAuthorNameExisting(authorData.Name);
+
+        Assert.IsTrue(result);
     }
 }

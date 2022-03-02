@@ -28,8 +28,7 @@ namespace APITests.BookItems
             Barcode = "1234567",
             BorrowedDate = new DateTime(2015 - 06 - 12),
             ReturnDate = new DateTime(2015 - 07 - 12),
-            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available,
-            BookId = Guid.Parse("4b156c4e-dada-43d9-828e-714ae132033b")
+            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available
         };
 
         BookItemsRequest bookItemsRequest = new BookItemsRequest
@@ -37,8 +36,7 @@ namespace APITests.BookItems
             Barcode = "1234567",
             BorrowedDate = new DateTime(2015 - 06 - 12),
             ReturnDate = new DateTime(2015 - 07 - 12),
-            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available,
-            BookId = Guid.Parse("4b156c4e-dada-43d9-828e-714ae132033b")
+            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available
     };
 
         [SetUp]
@@ -71,7 +69,6 @@ namespace APITests.BookItems
             Assert.That(bookItemResult.BorrowedDate, Is.EqualTo(bookItemsData.BorrowedDate));
             Assert.That(bookItemResult.ReturnDate, Is.EqualTo(bookItemsData.ReturnDate));
             Assert.That(bookItemResult.BookStatus, Is.EqualTo(bookItemsData.BookStatus));
-            Assert.That(bookItemResult.BookId, Is.EqualTo(bookItemsData.BookId));
         }
         [Test]
         public async Task GetAsync_NotFound()
@@ -101,8 +98,7 @@ namespace APITests.BookItems
             bi.Barcode == bookItemsData.Barcode &&
             bi.BorrowedDate == bookItemsData.BorrowedDate &&
             bi.ReturnDate == bookItemsData.ReturnDate &&
-            bi.BookStatus == bookItemsData.BookStatus &&
-            bi.BookId == bookItemsData.BookId
+            bi.BookStatus == bookItemsData.BookStatus
             ));
 
             var okResult = resultC as ObjectResult;
@@ -118,7 +114,6 @@ namespace APITests.BookItems
             Assert.That(bookItemResult.BorrowedDate, Is.EqualTo(bookItemsData.BorrowedDate));
             Assert.That(bookItemResult.ReturnDate, Is.EqualTo(bookItemsData.ReturnDate));
             Assert.That(bookItemResult.BookStatus, Is.EqualTo(bookItemsData.BookStatus));
-            Assert.That(bookItemResult.BookId, Is.EqualTo(bookItemsData.BookId));
         }
         [Test]
         public async Task UpdateAsync()
@@ -127,14 +122,13 @@ namespace APITests.BookItems
 
             _bookItemsService.Contains(Arg.Any<Guid>()).Returns(true);
 
-            var resultU = await _bookItemsController.Update(bookItemsData.BookId!.Value, bookItemsRequest);
+            var resultU = await _bookItemsController.Update(bookItemsData.BookItemId, bookItemsRequest);
 
             await _bookItemsService.Received(1).Update(Arg.Any<Guid>(), Arg.Is<BookItem>(bi =>
                 bi.Barcode == bookItemsData.Barcode &&
                 bi.BorrowedDate == bookItemsData.BorrowedDate &&
                 bi.ReturnDate == bookItemsData.ReturnDate &&
-                bi.BookStatus == bookItemsData.BookStatus &&
-                bi.BookId == bookItemsData.BookId
+                bi.BookStatus == bookItemsData.BookStatus
             ));
 
             var statusResult = resultU as ObjectResult;
@@ -146,22 +140,7 @@ namespace APITests.BookItems
 
             Assert.AreEqual(valueResult.Barcode, bookItemsData.Barcode);
         }
-        [Test]
-        public async Task UpdateAsync_NotFound()
-        {
-            _bookItemsService.Update(Arg.Any<Guid>(), Arg.Any<BookItem>()).Returns(bookItemsData);
-
-            _bookItemsService.Contains(Arg.Any<Guid>()).Returns(false);
-
-            var resultU = await _bookItemsController.Update(bookItemsData.BookItemId, bookItemsRequest);
-
-            await _bookItemsService.DidNotReceive().Update(Arg.Any<Guid>(), Arg.Any<BookItem>());
-
-            var statusResult = resultU as ObjectResult;
-
-            Assert.IsNotNull(statusResult);
-            Assert.AreEqual(404, statusResult.StatusCode);
-        }
+       
         [Test]
         public async Task DeleteAsync()
         {
@@ -170,17 +149,6 @@ namespace APITests.BookItems
 
             var resultD = await _bookItemsController.Delete(bookItemsData.BookItemId);
             await _bookItemsService.Received(1).Delete(Arg.Any<Guid>());
-
-            Assert.That(resultD, Is.Not.Null);
-        }
-        [Test]
-        public async Task DeleteAsync_NotFound()
-        {
-            await _bookItemsService.Delete(Arg.Any<Guid>());
-            _bookItemsService.Contains(Arg.Any<Guid>()).Returns(false);
-
-            var resultD = await _bookItemsController.Delete(bookItemsData.BookItemId);
-            await _bookItemsService.DidNotReceive().Delete(Arg.Any<Guid>());
 
             Assert.That(resultD, Is.Not.Null);
         }

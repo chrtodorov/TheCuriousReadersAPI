@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Authorize(Policy = Policies.RequireLibrarianRole)]
+    [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
     [Route("api/[controller]")]
     [ApiController]
     public class BooksController : ControllerBase
@@ -45,6 +45,9 @@ namespace API.Controllers
         {
             var books = await _booksService.GetBooks(booksParameters);
 
+            if (!books.Data.Any())
+                return NotFound("No books found");
+
             _logger.LogInformation($"Returned {books.TotalCount} books from database");
 
             return Ok(books);
@@ -62,7 +65,14 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(await _booksService.Create(bookRequest.ToBook()));
+            try
+            {
+                return Ok(await _booksService.Create(bookRequest.ToBook()));
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPut("{bookId}")]
@@ -77,10 +87,14 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!await _booksService.Contains(bookId))
-                return NotFound("Book with such Id cannot be found and updated");
-
-            return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
+            try
+            {
+                return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpDelete("{bookId}")]
@@ -92,11 +106,15 @@ namespace API.Controllers
         {
             _logger.LogInformation("Delete Book with {@bookId}", bookId);
 
-            if (!await _booksService.Contains(bookId))
-                return NotFound("Book with such Id does not exist!");
-
-            await _booksService.Delete(bookId);
-            return Ok("Book deleted ID: " + bookId);
+            try
+            {
+                await _booksService.Delete(bookId);
+                return Ok();
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
         }
     }
 }

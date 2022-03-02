@@ -27,7 +27,7 @@ namespace DataAccessTests
             BorrowedDate = new DateTime(2015 - 06 - 12),
             ReturnDate = new DateTime(2015 - 07 - 12),
             BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available,
-            BookId = Guid.Parse("4b156c4e-dada-43d9-828e-714ae132033b")
+            BookId = Guid.NewGuid()
         };
 
 
@@ -37,8 +37,7 @@ namespace DataAccessTests
             Barcode = "1234567",
             BorrowedDate = new DateTime(2015 - 06 - 12),
             ReturnDate = new DateTime(2015 - 07 - 12),
-            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available,
-            BookId = Guid.Parse("4b156c4e-dada-43d9-828e-714ae132033b")
+            BookStatus = BusinessLayer.Enumerations.BookItemStatusEnumeration.Available
         };
 
         [SetUp]
@@ -70,19 +69,6 @@ namespace DataAccessTests
             Assert.That(resultG.BorrowedDate, Is.EqualTo(test.BorrowedDate));
             Assert.That(resultG.ReturnDate, Is.EqualTo(test.ReturnDate));
             Assert.That(resultG.BookStatus, Is.EqualTo(test.BookStatus));
-            Assert.That(resultG.BookId, Is.EqualTo(test.BookId));
-        }
-
-        [Test]
-        public async Task CreateAsync()
-        {
-            var resultC = await _bookItemsRepository.Create(bookItemsData);
-
-            var testC = _context.BookItems.FirstOrDefault();
-
-            Assert.That(resultC, Is.Not.Null);
-
-            Assert.That(resultC.BookItemId, Is.EqualTo(testC.BookItemId));
         }
 
         [Test]
@@ -104,7 +90,6 @@ namespace DataAccessTests
             Assert.That(resultU.BorrowedDate, Is.EqualTo(testU.BorrowedDate));
             Assert.That(resultU.ReturnDate, Is.EqualTo(testU.ReturnDate));
             Assert.That(resultU.BookStatus, Is.EqualTo(testU.BookStatus));
-            Assert.That(resultU.BookId, Is.EqualTo(testU.BookId));
         }
 
         [Test]
@@ -134,6 +119,19 @@ namespace DataAccessTests
             var resultok = await _bookItemsRepository.Contains(testr.BookItemId);
 
             Assert.That(resultok, Is.True);
+        }
+
+        [Test]
+        public async Task IsBarcodeExisting()
+        {
+            _context.BookItems.Add(bookItemsDataEntity);
+            await _context.SaveChangesAsync();
+
+            var test = _context.BookItems.FirstOrDefault();
+
+            var result = await _bookItemsRepository.IsBarcodeExisting(test!.Barcode);
+
+            Assert.IsTrue(result);
         }
     }
 }

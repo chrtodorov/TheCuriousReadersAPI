@@ -123,5 +123,17 @@ namespace BusinessLayerTests.Publishers
             await _publishersRepository.Received(1).Contains(publisherData.PublisherId);
             Assert.That(result, Is.EqualTo(expectedRes));
         }
+
+        [Test]
+        public async Task IsPublisherNameExisting()
+        {
+            _publishersRepository.IsPublisherNameExisting(publisherData.Name).Returns(true);
+
+            var result = await _publishersService.IsPublisherNameExisting(publisherData.Name);
+
+            await _publishersRepository.Received(1).IsPublisherNameExisting(publisherData.Name);
+
+            Assert.IsTrue(result);
+        }
     }
 }
