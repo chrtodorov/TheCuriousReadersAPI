@@ -69,6 +69,11 @@ namespace DataAccess
                 throw new ArgumentException($"Role with name {user.RoleName} does not exist!");
             }
 
+            if (user.RoleName.ToLower() == Roles.Customer && user.Address is null)
+            {
+                throw new ArgumentException("The address field is required for customers!");
+            }
+
             var emailExists = await _dbContext.Users.AnyAsync(u => u.EmailAddress == user.EmailAddress);
 
             if (emailExists)
