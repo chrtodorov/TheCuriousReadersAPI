@@ -8,6 +8,9 @@ namespace BusinessLayer.Models
     {
 
         [Required]
+        public Guid UserId  { get; set; }
+
+        [Required]
         [MaxLength(128)]
         public string FirstName { get; set; } = null!;
 

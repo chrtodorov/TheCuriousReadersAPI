@@ -1,4 +1,4 @@
-﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Enumerations;
 using BusinessLayer.Models;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
