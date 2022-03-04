@@ -26,7 +26,7 @@ public class PublisherService : IPublishersService
 
     public async Task Delete(Guid publisherId)
     {
-        if (await _publisherRepository.Contains(publisherId))
+        if (!await _publisherRepository.Contains(publisherId))
         {
             throw new ArgumentException("Publisher cannot be found!");
         }

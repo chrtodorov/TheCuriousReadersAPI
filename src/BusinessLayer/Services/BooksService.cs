@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Interfaces.Books;
+﻿using BusinessLayer.Interfaces.BookItems;
+using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
 
 namespace BusinessLayer.Services;
@@ -6,10 +7,12 @@ namespace BusinessLayer.Services;
 public class BooksService : IBooksService
 {
     private readonly IBooksRepository _repository;
+    private readonly IBookItemsRepository _bookItemsRepository;
 
-    public BooksService(IBooksRepository repository)
+    public BooksService(IBooksRepository repository, IBookItemsRepository bookItemsRepository)
     {
         this._repository = repository;
+        this._bookItemsRepository = bookItemsRepository;
     }
 
     public async Task<Book?> Get(Guid bookId) => await _repository.Get(bookId);
@@ -22,6 +25,15 @@ public class BooksService : IBooksService
         {
             throw new ArgumentException($"Book with this ISBN: {book.Isbn} already exists!");
         }
+
+        foreach (var bookItem in book.BookItems!)
+        {
+            if (await _bookItemsRepository.IsBarcodeExisting(bookItem.Barcode))
+            {
+                throw new ArgumentException($"Book Copy with Barcode: {bookItem.Barcode} already exists!");
+            }
+        }
+
         return await _repository.Create(book);
     }
 
