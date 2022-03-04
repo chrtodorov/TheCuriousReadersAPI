@@ -70,6 +70,7 @@ public class AuthorServiceTest
     [Test]
     public async Task UpdateAsync()
     {
+        _authorsRepository.Contains(authorData.AuthorId).Returns(true);
         _authorsRepository.Update(authorData.AuthorId,authorData).Returns(authorData);
         var authorU = await _authorsService.Update(authorData.AuthorId, authorData);
         await _authorsRepository.Received(1).Update(authorData.AuthorId, authorData);
@@ -83,6 +84,7 @@ public class AuthorServiceTest
     [Test]
     public async Task UpdateAsyncFail()
     {
+        _authorsRepository.Contains(authorData.AuthorId).Returns(true);
         _authorsRepository.Update(authorData.AuthorId , authorData).Returns(authorData);
         var authorU = await _authorsService.Update(authorData.AuthorId , authorData);
         await _authorsRepository.Received(1).Update(authorData.AuthorId , authorData);

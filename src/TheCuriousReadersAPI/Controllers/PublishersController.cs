@@ -92,7 +92,7 @@ namespace API.Controllers
                 await _publishersService.Delete(publisherId);
                 return Ok();
             }
-            catch (Exception e)
+            catch (ArgumentException e)
             {
                 return NotFound(e.Message);
             }
