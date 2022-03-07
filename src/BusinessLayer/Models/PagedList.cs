@@ -17,7 +17,7 @@ public class PagedList<T>
         TotalPages = (int)Math.Ceiling(count / (double)pageSize);
         Data = data;
     }
-    public static PagedList<T> ToPagedList(IEnumerable<T> source, int pageNumber, int pageSize)
+    public static PagedList<T> ToPagedList(IQueryable<T> source, int pageNumber, int pageSize)
     {
         var count = source.Count();
         var data = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();

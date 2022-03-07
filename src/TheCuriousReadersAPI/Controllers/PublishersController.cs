@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.Publishers;
+using BusinessLayer.Models;
 using BusinessLayer.Requests;
 using DataAccess.Mappers;
 using Microsoft.AspNetCore.Authorization;
@@ -37,15 +38,17 @@ namespace API.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery]PublisherParameters parameters)
         {
-            _logger.LogInformation("Get All Publishers");
-            var result = await _publishersService.GetAll();
-
-            if (!result.Any())
-                return NotFound("No existing publishers");
-            
-            return Ok(result);
+            try
+            {
+                _logger.LogInformation("Get All Publishers");
+                return Ok(await _publishersService.GetAll(parameters));
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }        
         }
 
         [HttpPost]

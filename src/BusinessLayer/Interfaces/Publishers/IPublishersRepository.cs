@@ -5,7 +5,7 @@ namespace BusinessLayer.Interfaces.Publishers;
 public interface IPublishersRepository
 {
     Task<Publisher?> Get(Guid publisherId);
-    Task<List<Publisher>> GetAll();
+    Task<PagedList<Publisher>> GetAll(PublisherParameters parameters);
     Task<Publisher> Create(Publisher publisher);
     Task<Publisher?> Update(Guid publisherId, Publisher publisher);
     Task Delete(Guid publisherId);

@@ -82,17 +82,22 @@ public class PublishersRepository : IPublishersRepository
         return await query.FirstOrDefaultAsync();
     }
 
-    public async Task<List<Publisher>> GetAll()
+    public Task<PagedList<Publisher>> GetAll(PublisherParameters parameters)
     {
-        _logger.LogInformation("Get all Publishers");
+        var query = _dataContext.Publishers.AsNoTracking();
 
-        var publisherEntity = await _dataContext.Publishers
-            .AsNoTracking()
-            .OrderBy(p => p.Name)
-            .Select(p => p.ToPublisher())
-            .ToListAsync();
+        if (!string.IsNullOrEmpty(parameters.Name))
+        {
+            query = query.Where(a => a.Name.Contains(parameters.Name));
+        }
 
-        return publisherEntity;
+        _logger.LogInformation("Get all publishers");
+
+        return Task.FromResult(PagedList<Publisher>.ToPagedList(query
+            .OrderBy(b => b.Name)
+            .Select(b => b.ToPublisher()),
+            parameters.PageNumber,
+            parameters.PageSize));
     }
 
     public async Task<Publisher?> Update(Guid publisherId, Publisher publisher)

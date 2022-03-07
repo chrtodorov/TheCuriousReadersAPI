@@ -47,9 +47,18 @@ public class AuthorsService : IAuthorsService
             throw new ArgumentException("Author cannot be found!");
         }
         await _authorsRepository.Delete(authorId);
-    } 
+    }
     public async Task<bool> Contains(Guid id) => await _authorsRepository.Contains(id);
     public async Task<bool> IsAuthorNameExisting(string name) => await _authorsRepository.IsAuthorNameExisting(name);
 
-    public async Task<List<Author>> GetAuthors(AuthorParameters authorParameters) => await _authorsRepository.GetAuthors(authorParameters);
+    public async Task<PagedList<Author>> GetAuthors(AuthorParameters authorParameters)
+    {
+        var authors = await _authorsRepository.GetAuthors(authorParameters);
+        if (!authors.Data.Any())
+        {
+            throw new ArgumentException("No authors found!");
+        }
+        return authors;
+    }
+    
 }

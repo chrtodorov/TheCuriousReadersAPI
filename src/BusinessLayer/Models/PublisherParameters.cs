@@ -1,6 +1,6 @@
 ﻿namespace BusinessLayer.Models
 {
-    public class AuthorParameters : QueryParameters
+    public class PublisherParameters : QueryParameters
     {
         public string Name { get; set; } = string.Empty;
     }

@@ -37,8 +37,7 @@ public class AuthorsRepository : IAuthorsRepository
         
         return await query.FirstOrDefaultAsync();
     }
-
-    public async Task<List<Author>> GetAuthors(AuthorParameters authorParameters)
+    public Task<PagedList<Author>> GetAuthors(AuthorParameters authorParameters)
     {
         var query = _dataContext.Authors.AsNoTracking();
         
@@ -47,14 +46,13 @@ public class AuthorsRepository : IAuthorsRepository
             query = query.Where(a => a.Name.Contains(authorParameters.Name));
         }
         
-        var result = await query
-            .OrderBy(a => a.Name)
-            .Select(a => a.ToAuthor())
-            .ToListAsync();
-        
         _logger.LogInformation("Get all authors");
 
-        return result;
+        return Task.FromResult(PagedList<Author>.ToPagedList(query
+            .OrderBy(b => b.Name)
+            .Select(b => b.ToAuthor()),
+            authorParameters.PageNumber,
+            authorParameters.PageSize));
     }
 
     public async Task<Author> Create(Author author)
