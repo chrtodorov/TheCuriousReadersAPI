@@ -94,7 +94,7 @@ namespace API.Controllers
             }
             catch (ArgumentException e)
             {
-                return NotFound(e.Message);
+                return BadRequest(e.Message);
             }
         }
     }

@@ -2,6 +2,7 @@
 using BusinessLayer.Models;
 using DataAccess.Entities;
 using DataAccess.Mappers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -47,14 +48,19 @@ public class PublishersRepository : IPublishersRepository
             try
             {
                 await _dataContext.SaveChangesAsync();
+                _logger.LogInformation("Deleting Publisher with {@PublisherId}", publisherId);
             }
             catch (DbUpdateException e)
             {
-                _logger.LogCritical(e.ToString());
-                throw;
+                var sqlException = e.GetBaseException() as SqlException;
+
+                if (sqlException != null && sqlException.Number == 547)
+                {
+                    throw new ArgumentException("Must delete all books from this publisher before deleting it.");
+                }
             }
             
-            _logger.LogInformation("Deleting Publisher with {@PublisherId}", publisherId);
+            
         }
         _logger.LogInformation("There is no such Publisher with {@PublisherId}", publisherId);
     }
