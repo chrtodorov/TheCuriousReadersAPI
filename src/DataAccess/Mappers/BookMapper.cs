@@ -11,7 +11,7 @@ public static class BookMapper
         return new Book
         {
             BookId = bookEntity.BookId,
-            Isbn = bookEntity.Isbn,
+            Isbn = bookEntity.Isbn.Trim(),
             Title = bookEntity.Title,
             Description = bookEntity.Description,
             Genre = bookEntity.Genre,
@@ -26,7 +26,7 @@ public static class BookMapper
     {
         return new BookEntity
         {
-            Isbn = book.Isbn,
+            Isbn = book.Isbn.Trim(),
             Title = book.Title,
             Description = book.Description,
             Genre = book.Genre,
@@ -41,7 +41,7 @@ public static class BookMapper
     {
         return new Book
         {
-            Isbn = bookRequest.Isbn,
+            Isbn = bookRequest.Isbn.Trim(),
             Title = bookRequest.Title,
             Description = bookRequest.Description,
             Genre = bookRequest.Genre,
