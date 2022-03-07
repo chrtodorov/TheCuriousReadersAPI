@@ -55,20 +55,6 @@ namespace BusinessLayerTests.Publishers
         }
 
         [Test]
-        public async Task GetAll()
-        {
-            var publisherList = new List<Publisher>
-            {
-                publisherData
-            };
-
-            _publishersRepository.GetAll().Returns(publisherList);
-            var receivedList = await _publishersService.GetAll();
-
-            Assert.AreEqual(publisherList, receivedList);
-        }
-
-        [Test]
         public async Task CreateAsync()
         {
             _publishersRepository.Create(publisherData).Returns(publisherData);
