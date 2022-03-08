@@ -25,14 +25,29 @@ public class DataContext : DbContext
         {
             builder
                 .HasMany(b => b.Authors)
-                .WithMany(a => a.Books);
+                .WithMany(a => a.Books)
+                .UsingEntity<BookAuthor>(
+                ba => ba
+                    .HasOne(ba => ba.AuthorEntity)
+                    .WithMany()
+                    .HasForeignKey(a => a.AuthorId)
+                    .OnDelete(DeleteBehavior.Restrict),
+                ba => ba
+                    .HasOne(ba => ba.BookEntity)
+                    .WithMany()
+                    .HasForeignKey(b => b.BookId))
+                .ToTable("BookAuthors")
+                .HasKey(ba => new { ba.AuthorId, ba.BookId });
+
             builder
                 .HasOne(b => b.Publisher)
                 .WithMany(p => p.Books)
-                .HasForeignKey(b => b.PublisherId);
+                .HasForeignKey(b => b.PublisherId)
+                .OnDelete(DeleteBehavior.Restrict);
             builder
                 .HasMany(b => b.BookItems)
-                .WithOne(b => b.Book);
+                .WithOne(b => b.Book)
+                .OnDelete(DeleteBehavior.Cascade);
             builder
                 .HasIndex(b => b.Isbn).IsUnique();
         });

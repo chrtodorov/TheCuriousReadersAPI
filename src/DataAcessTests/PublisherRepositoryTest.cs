@@ -73,12 +73,12 @@ namespace DataAccessTests
             await _context.SaveChangesAsync();
 
             var testr = _context.Publishers.Select(p => p.PublisherId).ToList();
-            var resultG = await _publishersRepository.GetAll();
+            var resultG = await _publishersRepository.GetAll(new PublisherParameters(){});
             var test = _context.Publishers.Select(p => p.PublisherId).ToList();
 
             Assert.IsNotNull(resultG);
 
-            Assert.AreEqual(resultG.Count, test.Count);
+            Assert.AreEqual(resultG.Data.Count, test.Count);
         }
 
         [Test]

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
 using BusinessLayer.Services;
@@ -13,6 +14,7 @@ public class BooksServiceTests
 {
     private IBooksService _booksService;
     private IBooksRepository _booksRepository;
+    private IBookItemsRepository _bookItemsRepository;
 
     private readonly Book _bookData = new()
     {
@@ -27,7 +29,12 @@ public class BooksServiceTests
         {
             Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd105"),
             Guid.Parse("3b75f22e-6721-482b-a91f-f6c473d330e2")
+        },
+        BookItems = new List<BookItem>()
+        {
+            new BookItem() { Barcode = "123456"}
         }
+
     };
 
 
@@ -35,7 +42,8 @@ public class BooksServiceTests
     public void Setup()
     {
         _booksRepository = Substitute.For<IBooksRepository>();
-        _booksService = new BooksService(_booksRepository);
+        _bookItemsRepository = Substitute.For<IBookItemsRepository>();
+        _booksService = new BooksService(_booksRepository, _bookItemsRepository);
     }
 
     [Test]

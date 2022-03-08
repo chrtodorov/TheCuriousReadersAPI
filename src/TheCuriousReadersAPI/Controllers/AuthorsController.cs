@@ -39,17 +39,15 @@ namespace API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAuthors([FromQuery]AuthorParameters authorParameters)
         {
-
-            var authors = await _authorsService.GetAuthors(authorParameters);
-            
-            if (!authors.Any())
+            try
             {
-                return NotFound("No authors found");
+                _logger.LogInformation($"Returned all authors from the database");
+                return Ok(await _authorsService.GetAuthors(authorParameters));
             }
-
-            _logger.LogInformation($"Returned {authors.Count} authors from the database");
-
-            return Ok(authors);
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPost]
@@ -102,7 +100,7 @@ namespace API.Controllers
             }
             catch (ArgumentException e)
             {
-                return NotFound(e.Message);
+                return BadRequest(e.Message);
             }
         }
     }

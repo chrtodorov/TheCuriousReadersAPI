@@ -2,6 +2,7 @@
 using BusinessLayer.Models;
 using DataAccess.Entities;
 using DataAccess.Mappers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -47,14 +48,19 @@ public class PublishersRepository : IPublishersRepository
             try
             {
                 await _dataContext.SaveChangesAsync();
+                _logger.LogInformation("Deleting Publisher with {@PublisherId}", publisherId);
             }
             catch (DbUpdateException e)
             {
-                _logger.LogCritical(e.ToString());
-                throw;
+                var sqlException = e.GetBaseException() as SqlException;
+
+                if (sqlException != null && sqlException.Number == 547)
+                {
+                    throw new ArgumentException("Must delete all books from this publisher before deleting it.");
+                }
             }
             
-            _logger.LogInformation("Deleting Publisher with {@PublisherId}", publisherId);
+            
         }
         _logger.LogInformation("There is no such Publisher with {@PublisherId}", publisherId);
     }
@@ -76,17 +82,22 @@ public class PublishersRepository : IPublishersRepository
         return await query.FirstOrDefaultAsync();
     }
 
-    public async Task<List<Publisher>> GetAll()
+    public Task<PagedList<Publisher>> GetAll(PublisherParameters parameters)
     {
-        _logger.LogInformation("Get all Publishers");
+        var query = _dataContext.Publishers.AsNoTracking();
 
-        var publisherEntity = await _dataContext.Publishers
-            .AsNoTracking()
-            .OrderBy(p => p.Name)
-            .Select(p => p.ToPublisher())
-            .ToListAsync();
+        if (!string.IsNullOrEmpty(parameters.Name))
+        {
+            query = query.Where(a => a.Name.Contains(parameters.Name));
+        }
 
-        return publisherEntity;
+        _logger.LogInformation("Get all publishers");
+
+        return Task.FromResult(PagedList<Publisher>.ToPagedList(query
+            .OrderBy(b => b.Name)
+            .Select(b => b.ToPublisher()),
+            parameters.PageNumber,
+            parameters.PageSize));
     }
 
     public async Task<Publisher?> Update(Guid publisherId, Publisher publisher)

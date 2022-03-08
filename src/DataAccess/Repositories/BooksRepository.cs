@@ -68,14 +68,11 @@ public class BooksRepository : IBooksRepository
             query = query.Where(b => b.Genre == bookParameters.Genre);
         }
 
-        await query
-            
-            .OrderBy(b => b.Title)
-            .ToListAsync();
-
         _logger.LogInformation("Get all books");
 
-        return PagedList<Book>.ToPagedList(query.Select(b => b.ToBook()),
+        return PagedList<Book>.ToPagedList(query
+            .OrderBy(b => b.Title)
+            .Select(b => b.ToBook()),
             bookParameters.PageNumber,
             bookParameters.PageSize);
     }

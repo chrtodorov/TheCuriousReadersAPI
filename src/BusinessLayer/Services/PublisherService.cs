@@ -35,7 +35,15 @@ public class PublisherService : IPublishersService
 
     public async Task<Publisher?> Get(Guid publisherId) => await _publisherRepository.Get(publisherId);
 
-    public async Task<List<Publisher>> GetAll() => await _publisherRepository.GetAll();
+    public async Task<PagedList<Publisher>> GetAll(PublisherParameters parameters)
+    {
+        var publishers = await _publisherRepository.GetAll(parameters);
+        if (!publishers.Data.Any())
+        {
+            throw new ArgumentException("No Publishers found!");
+        }
+        return publishers;
+    }
     public async Task<Publisher?> Update(Guid publisherId, Publisher publisher)
     {
         if (!await _publisherRepository.Contains(publisherId))

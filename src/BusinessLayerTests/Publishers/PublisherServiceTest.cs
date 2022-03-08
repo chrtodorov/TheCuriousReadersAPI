@@ -55,20 +55,6 @@ namespace BusinessLayerTests.Publishers
         }
 
         [Test]
-        public async Task GetAll()
-        {
-            var publisherList = new List<Publisher>
-            {
-                publisherData
-            };
-
-            _publishersRepository.GetAll().Returns(publisherList);
-            var receivedList = await _publishersService.GetAll();
-
-            Assert.AreEqual(publisherList, receivedList);
-        }
-
-        [Test]
         public async Task CreateAsync()
         {
             _publishersRepository.Create(publisherData).Returns(publisherData);
@@ -83,6 +69,7 @@ namespace BusinessLayerTests.Publishers
         [Test]
         public async Task UpdateAsync()
         {
+            _publishersRepository.Contains(publisherData.PublisherId).Returns(true);
             _publishersRepository.Update(publisherData.PublisherId, publisherData).Returns(publisherData);
             var publisherU = await _publishersService.Update(publisherData.PublisherId, publisherData);
             await _publishersRepository.Received(1).Update(publisherData.PublisherId, publisherData);
@@ -95,6 +82,7 @@ namespace BusinessLayerTests.Publishers
         [Test]
         public async Task UpdateAsyncFail()
         {
+            _publishersRepository.Contains(publisherData.PublisherId).Returns(true);
             _publishersRepository.Update(publisherData.PublisherId, publisherData).Returns(publisherData);
             var authorU = await _publishersService.Update(publisherData.PublisherId, publisherData);
             await _publishersRepository.Received(1).Update(publisherData.PublisherId, publisherData);
@@ -110,6 +98,7 @@ namespace BusinessLayerTests.Publishers
         [Test]
         public async Task DeleteAsync()
         {
+            _publishersRepository.Contains(publisherData.PublisherId).Returns(true);
             var deleted = _publishersService.Delete(publisherData.PublisherId);
             await _publishersRepository.Received(1).Delete(publisherData.PublisherId);
         }

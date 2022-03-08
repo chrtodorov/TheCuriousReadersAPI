@@ -62,27 +62,6 @@ namespace APITests.Publishers
         }
 
         [Test]
-        public async Task GetAllAsync_Ok()
-        {
-            var publishers = new List<Publisher> 
-            {
-                publisherData 
-            };
-
-            _publishersService.GetAll().Returns(publishers);
-            var result = await _publishersController.GetAll();
-            var okResult = result as OkObjectResult;
-
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
-
-            var listResult = okResult?.Value as List<Publisher>;
-
-            Assert.IsNotNull(listResult);
-            Assert.AreEqual(publishers, listResult);
-        }
-
-        [Test]
         public async Task GetAsync_NotFound()
         {
             var fakeId = Guid.NewGuid();

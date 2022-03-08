@@ -24,6 +24,7 @@ namespace DataAccess.Mappers
         {
             return new User
             {
+                UserId = userEntity.UserId,
                 FirstName = userEntity.FirstName,
                 LastName = userEntity.LastName,
                 EmailAddress = userEntity.EmailAddress,
@@ -52,6 +53,7 @@ namespace DataAccess.Mappers
         {
             return new UserResponse
             {
+                UserId = user.UserId,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 EmailAddress = user.EmailAddress,

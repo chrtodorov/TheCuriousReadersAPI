@@ -2,6 +2,7 @@
 using BusinessLayer.Models;
 using DataAccess.Entities;
 using DataAccess.Mappers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -36,8 +37,7 @@ public class AuthorsRepository : IAuthorsRepository
         
         return await query.FirstOrDefaultAsync();
     }
-
-    public async Task<List<Author>> GetAuthors(AuthorParameters authorParameters)
+    public Task<PagedList<Author>> GetAuthors(AuthorParameters authorParameters)
     {
         var query = _dataContext.Authors.AsNoTracking();
         
@@ -46,14 +46,13 @@ public class AuthorsRepository : IAuthorsRepository
             query = query.Where(a => a.Name.Contains(authorParameters.Name));
         }
         
-        var result = await query
-            .OrderBy(a => a.Name)
-            .Select(a => a.ToAuthor())
-            .ToListAsync();
-        
         _logger.LogInformation("Get all authors");
 
-        return result;
+        return Task.FromResult(PagedList<Author>.ToPagedList(query
+            .OrderBy(b => b.Name)
+            .Select(b => b.ToAuthor()),
+            authorParameters.PageNumber,
+            authorParameters.PageSize));
     }
 
     public async Task<Author> Create(Author author)
@@ -111,17 +110,18 @@ public class AuthorsRepository : IAuthorsRepository
             try
             {
                 await _dataContext.SaveChangesAsync();
+                _logger.LogInformation("Deleting Author with {@AuthorId}", authorId);
             }
             catch (DbUpdateException e)
             {
-                _logger.LogCritical(e.ToString());
-                throw;
-            }
+                var sqlException = e.GetBaseException() as SqlException;
 
-            _logger.LogInformation("Deleting Author with {@AuthorId}", authorId);
+                if(sqlException != null && sqlException.Number == 547)
+                {
+                    throw new ArgumentException("Must delete all books from this auhtor before deleting it.");
+                }
+            }          
         }
-
-        _logger.LogInformation("There is no such Author with {@AuthorId}", authorId);
     }
 
     public async Task<bool> Contains(Guid id)
