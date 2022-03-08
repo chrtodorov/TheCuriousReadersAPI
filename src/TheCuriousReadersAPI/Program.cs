@@ -17,6 +17,19 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.WithOrigins(
+                "http://localhost:4200",
+                "http://schoolofdotnet2022-vitosha.azurewebsites.net")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+        });
+});
+
 // Add services to the container.
 builder.Services.AddScoped<IBooksService, BooksService>();
 builder.Services.AddScoped<IBooksRepository, BooksRepository>();
@@ -119,6 +132,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+
+app.UseCors();
 
 app.UseAuthorization();
 
