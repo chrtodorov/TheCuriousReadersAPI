@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
+using BusinessLayer.Responses;
 using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +19,18 @@ public class BooksRepository : IBooksRepository
         this._logger = logger;
     }
 
-    public async Task<Book?> Get(Guid bookId)
+    public async Task<BookDetailsResponse?> Get(Guid bookId)
     {
         _logger.LogInformation("Get Book with {@BookId}", bookId);
 
-        var bookEntity = await GetById(bookId, false);
+        var bookEntity = await _dataContext.Books
+            .Include(b => b.Authors)
+            .Include(b => b.Publisher)
+            .Where(b => b.BookId == bookId)
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
 
-        return bookEntity?.ToBook();
+        return bookEntity?.ToBookDetailsResponse();
     }
 
     public async Task<BookEntity?> GetById(Guid bookId, bool tracking = true)

@@ -43,14 +43,8 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetBooks([FromQuery] BookParameters booksParameters)
         {
-            var books = await _booksService.GetBooks(booksParameters);
-
-            if (!books.Data.Any())
-                return NotFound("No books found");
-
-            _logger.LogInformation($"Returned {books.TotalCount} books from database");
-
-            return Ok(books);
+            _logger.LogInformation($"Returned all books from database");
+            return Ok(await _booksService.GetBooks(booksParameters));
         }
 
         [HttpPost]

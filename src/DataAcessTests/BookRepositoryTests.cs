@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
+using BusinessLayer.Responses;
 using DataAccess;
 using DataAccess.Entities;
 using DataAccess.Mappers;
@@ -81,14 +82,14 @@ public class BookRepositoryTests
 
         var resultGetBook = await _booksRepository.Get(testBookEntity!.BookId);
 
-        var testBook = _context.Books.FirstOrDefault()!.ToBook();
+        var testBook = _context.Books.FirstOrDefault()!.ToBookDetailsResponse();
 
         Assert.IsNotNull(resultGetBook);
         
-        CollectionAssert.AreEqual(testBook.AuthorsIds, resultGetBook!.AuthorsIds);
+        CollectionAssert.AreEqual(testBook.Authors?.Select(a => a.AuthorId), resultGetBook!.Authors?.Select(a => a.AuthorId));
         Assert.AreEqual(testBook.Title, resultGetBook.Title);
         Assert.AreEqual(testBook.Description, resultGetBook.Description);
-        Assert.AreEqual(testBook.PublisherId, resultGetBook.PublisherId);
+        Assert.AreEqual(testBook.Publisher?.PublisherId, testBook.Publisher?.PublisherId);
         Assert.AreEqual(testBook.BookId, resultGetBook.BookId);
         Assert.AreEqual(testBook.CoverUrl, resultGetBook.CoverUrl);
         Assert.AreEqual(testBook.Genre, resultGetBook.Genre);

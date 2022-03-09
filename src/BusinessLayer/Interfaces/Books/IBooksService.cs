@@ -1,10 +1,11 @@
 ﻿using BusinessLayer.Models;
+using BusinessLayer.Responses;
 
 namespace BusinessLayer.Interfaces.Books;
 
 public interface IBooksService
 {
-    Task<Book?> Get(Guid bookId);
+    Task<BookDetailsResponse?> Get(Guid bookId);
     Task<PagedList<Book>> GetBooks(BookParameters booksParameters);
     Task<Book> Create(Book book);
     Task<Book?> Update(Guid bookId, Book book);

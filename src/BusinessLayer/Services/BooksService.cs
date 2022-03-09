@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
+using BusinessLayer.Responses;
 
 namespace BusinessLayer.Services;
 
@@ -15,7 +16,7 @@ public class BooksService : IBooksService
         this._bookItemsRepository = bookItemsRepository;
     }
 
-    public async Task<Book?> Get(Guid bookId) => await _repository.Get(bookId);
+    public async Task<BookDetailsResponse?> Get(Guid bookId) => await _repository.Get(bookId);
 
     public async Task<PagedList<Book>> GetBooks(BookParameters booksParameters) => await _repository.GetBooks(booksParameters);
 
