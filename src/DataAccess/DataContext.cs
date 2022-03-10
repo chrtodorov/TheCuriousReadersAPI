@@ -19,6 +19,7 @@ public class DataContext : DbContext
     public DbSet<AddressEntity> Addresses { get; set; } = null!;
     public DbSet<RoleEntity> Roles { get; set; } = null!;
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<BookEntity>(builder =>
@@ -101,5 +102,34 @@ public class DataContext : DbContext
         modelBuilder.Entity<PublisherEntity>()
             .HasIndex(p => p.Name).IsUnique();
 
+
+    }
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        Save();
+
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+    public void Save()
+    {
+       var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.Entity is AuditableEntity && 
+            (e.State == EntityState.Added 
+            || e.State == EntityState.Modified) 
+            );
+
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+               ((AuditableEntity)entry.Entity).CreatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                Entry((AuditableEntity)entry.Entity).Property(p => p.CreatedAt).IsModified = false;
+            }
+            ((AuditableEntity)entry.Entity).ModifiedAt = DateTime.UtcNow;
+        }
     }
 }

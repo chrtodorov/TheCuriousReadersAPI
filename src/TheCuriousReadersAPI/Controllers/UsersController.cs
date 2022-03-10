@@ -160,5 +160,12 @@ namespace API.Controllers
                 Expires = DateTime.UtcNow.AddDays(7)
             };
         }
+        [AllowAnonymous]
+        [HttpGet("count")]
+        public async Task<IActionResult> GetCount()
+        {
+            var numberOfUsers = await usersService.GetCount();
+            return Ok(numberOfUsers);
+        }
     }
 }

@@ -4,6 +4,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220307151902_AddedDate")]
+    partial class AddedDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +23,21 @@ namespace DataAccess.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("AuthorEntityBookEntity", b =>
+                {
+                    b.Property<Guid>("AuthorsAuthorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BooksBookId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AuthorsAuthorId", "BooksBookId");
+
+                    b.HasIndex("BooksBookId");
+
+                    b.ToTable("AuthorEntityBookEntity");
+                });
 
             modelBuilder.Entity("DataAccess.Entities.AddressEntity", b =>
                 {
@@ -114,21 +131,6 @@ namespace DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("Authors");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.BookAuthor", b =>
-                {
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BookId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("AuthorId", "BookId");
-
-                    b.HasIndex("BookId");
-
-                    b.ToTable("BookAuthors", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
@@ -351,6 +353,21 @@ namespace DataAccess.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("AuthorEntityBookEntity", b =>
+                {
+                    b.HasOne("DataAccess.Entities.AuthorEntity", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorsAuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccess.Entities.BookEntity", null)
+                        .WithMany()
+                        .HasForeignKey("BooksBookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("DataAccess.Entities.AdministratorEntity", b =>
                 {
                     b.HasOne("DataAccess.Entities.UserEntity", "User")
@@ -362,31 +379,12 @@ namespace DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DataAccess.Entities.BookAuthor", b =>
-                {
-                    b.HasOne("DataAccess.Entities.AuthorEntity", "AuthorEntity")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("DataAccess.Entities.BookEntity", "BookEntity")
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AuthorEntity");
-
-                    b.Navigation("BookEntity");
-                });
-
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
                 {
                     b.HasOne("DataAccess.Entities.PublisherEntity", "Publisher")
                         .WithMany("Books")
                         .HasForeignKey("PublisherId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Publisher");

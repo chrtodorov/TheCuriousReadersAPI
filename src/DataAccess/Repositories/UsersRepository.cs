@@ -60,6 +60,13 @@ namespace DataAccess
             return userEntity.ToUser();
         }
 
+        public async Task<int> GetCount()
+        {
+            var query = await _dbContext.Customers
+                .CountAsync();
+            return query;
+        }
+
         public async Task Register(User user)
         {
             var role = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == user.RoleName.ToLower());

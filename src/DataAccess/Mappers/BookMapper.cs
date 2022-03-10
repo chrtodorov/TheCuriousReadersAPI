@@ -13,6 +13,7 @@ public static class BookMapper
         {
             BookId = bookEntity.BookId,
             Isbn = bookEntity.Isbn.Trim(),
+            CreatedAt = bookEntity.CreatedAt,
             Title = bookEntity.Title,
             Description = bookEntity.Description,
             Genre = bookEntity.Genre,

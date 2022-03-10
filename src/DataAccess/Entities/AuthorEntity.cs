@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataAccess.Entities;
 
-public class AuthorEntity
+public class AuthorEntity:AuditableEntity
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

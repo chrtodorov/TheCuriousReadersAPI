@@ -7,6 +7,7 @@ namespace BusinessLayer.Interfaces.Users
     {
         Task<AuthenticatedUser> Authenticate(string email, string password, bool hashedPassword = false);
         Task Register(User user);
+        Task<int> GetCount();
         Task<AuthenticatedUser> RefreshToken(ClaimsPrincipal user);
         Task<User> ApproveUser(Guid userId, ClaimsPrincipal approver);
         Task RejectUser(Guid userId, ClaimsPrincipal rejecter);

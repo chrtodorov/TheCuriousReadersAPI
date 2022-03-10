@@ -74,5 +74,7 @@ namespace BusinessLayer
         public async Task<IEnumerable<User>> GetPendingCustomers() =>
             await usersRepository.GetPendingCustomers();
 
+        public async Task<int> GetCount()=>
+            await usersRepository.GetCount();
     }
 }

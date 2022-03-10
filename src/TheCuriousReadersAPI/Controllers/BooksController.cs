@@ -46,6 +46,21 @@ namespace API.Controllers
             _logger.LogInformation($"Returned all books from database");
             return Ok(await _booksService.GetBooks(booksParameters));
         }
+        [AllowAnonymous]
+        [HttpGet("latestbooks")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<Book>))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetLatest()
+        {
+            var books = await _booksService.GetLatest();
+
+            if (books.Count==0)
+                return NotFound("No books found");
+
+            _logger.LogInformation($"Returned {books.Count} books from database");
+
+            return Ok(books);
+        }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
@@ -103,6 +118,27 @@ namespace API.Controllers
             try
             {
                 await _booksService.Delete(bookId);
+                return Ok();
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+        [AllowAnonymous]
+        [HttpGet("count")]
+        public async Task<IActionResult> GetNumber()
+        {
+            var numberOfBooks = await _booksService.GetNumber();
+            return Ok(numberOfBooks);
+        }
+
+        [HttpPut("status/{bookId}")]
+        public async Task<IActionResult> MakeUnavailable(Guid bookId)
+        {
+            try
+            {
+                await _booksService.MakeUnavailable(bookId);
                 return Ok();
             }
             catch (ArgumentException e)
