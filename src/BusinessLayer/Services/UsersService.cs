@@ -23,6 +23,7 @@ namespace BusinessLayer
         public async Task<AuthenticatedUser> Authenticate(string email, string password, bool hashedPassword = false)
         {
             var user = await usersRepository.GetUser(email, password, hashedPassword);
+            var userSpecificId = await usersRepository.GetUserSpecificId(user.UserId, user.RoleName);
 
             var key = configuration.GetSection("JwtSecret").Value;
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -31,6 +32,8 @@ namespace BusinessLayer
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
+                    new Claim("Id", user.UserId.ToString()),
+                    new Claim("RoleSpecificId", userSpecificId.ToString()),
                     new Claim(ClaimTypes.Email, user.EmailAddress),
                     new Claim(ClaimTypes.Role, user.RoleName),
                 }),

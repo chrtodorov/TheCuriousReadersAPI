@@ -23,4 +23,10 @@ public class BookItemEntity:AuditableEntity
     [Required]
     public BookEntity? Book { get; set; }
     public Guid? BookId { get; set; }
+
+    public BookLoanEntity? BookLoan { get; set; }
+    public Guid? BookLoanId { get; set; }
+
+    public ICollection<BookRequestEntity> BookRequests { get; set; } = new HashSet<BookRequestEntity>();
+
 }

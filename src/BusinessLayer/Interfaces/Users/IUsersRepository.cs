@@ -8,6 +8,7 @@ namespace BusinessLayer.Interfaces.Users
         Task<User> GetUser(string email, string password, bool hashedPassword = false);
         Task<User> GetUser(string email);
         Task<int> GetCount();
+        Task<Guid> GetUserSpecificId(Guid userId, string roleName);
         Task Register(User user);
         Task<User> ApproveUser(Guid userId, ClaimsPrincipal approver);
         Task RejectUser(Guid userId, ClaimsPrincipal rejecter);

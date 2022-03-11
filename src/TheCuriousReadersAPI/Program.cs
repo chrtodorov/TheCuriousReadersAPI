@@ -2,6 +2,7 @@ using BusinessLayer;
 using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.Authors;
 using BusinessLayer.Interfaces.BookItems;
+using BusinessLayer.Interfaces.BookRequests;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Interfaces.Users;
@@ -41,6 +42,8 @@ builder.Services.AddScoped<IBookItemsService, BookItemsService>();
 builder.Services.AddScoped<IBookItemsRepository, BookItemsRepository>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<IBookRequestsService, BookRequestsService>();
+builder.Services.AddScoped<IBookRequestsRepository, BookRequestsRepository>();
 
 builder.Services.AddControllers();
 

@@ -24,6 +24,21 @@ public static class BookMapper
         };
     }
 
+    public static Book ToBookWithoutItems(this BookEntity bookEntity)
+    {
+        return new Book
+        {
+            BookId = bookEntity.BookId,
+            Isbn = bookEntity.Isbn.Trim(),
+            Title = bookEntity.Title,
+            Description = bookEntity.Description,
+            Genre = bookEntity.Genre,
+            CoverUrl = bookEntity.CoverUrl,
+            PublisherId = bookEntity.PublisherId,
+            AuthorsIds = bookEntity.Authors?.Select(a => a.AuthorId).ToList(),
+        };
+    }
+
     public static BookEntity ToBookEntity(this Book book)
     {
         return new BookEntity

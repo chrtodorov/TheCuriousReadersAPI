@@ -4,6 +4,7 @@ using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20220308081234_BookLoanEntity")]
+    partial class BookLoanEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,12 +51,6 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Street")
                         .IsRequired()
@@ -97,12 +93,6 @@ namespace DataAccess.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -142,9 +132,6 @@ namespace DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4000)
@@ -159,9 +146,6 @@ namespace DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("nvarchar(17)");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("PublisherId")
                         .IsRequired()
@@ -206,12 +190,6 @@ namespace DataAccess.Migrations
                     b.Property<DateTime>("BorrowedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("ReturnDate")
                         .HasColumnType("datetime2");
 
@@ -235,14 +213,17 @@ namespace DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("ApprovedBy")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("From")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("LoanedBy")
+                    b.Property<Guid>("LoanedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("LoanedTo")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int?>("Status")
+                        .HasColumnType("int");
 
                     b.Property<int>("TimesExtended")
                         .HasColumnType("int");
@@ -252,46 +233,12 @@ namespace DataAccess.Migrations
 
                     b.HasKey("BookLoanId");
 
-                    b.HasIndex("LoanedBy");
+                    b.HasIndex("ApprovedBy");
 
-                    b.HasIndex("LoanedTo");
+                    b.HasIndex("LoanedBy")
+                        .IsUnique();
 
                     b.ToTable("BookLoans");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.BookRequestEntity", b =>
-                {
-                    b.Property<Guid>("BookRequestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("AuditedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("BookItemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("RequestedBy")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("BookRequestId");
-
-                    b.HasIndex("AuditedBy");
-
-                    b.HasIndex("BookItemId");
-
-                    b.HasIndex("RequestedBy");
-
-                    b.ToTable("BookRequests");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
@@ -302,12 +249,6 @@ namespace DataAccess.Migrations
 
                     b.Property<Guid>("AddressId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -343,12 +284,6 @@ namespace DataAccess.Migrations
                     b.Property<Guid>("PublisherId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ModifiedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -474,8 +409,7 @@ namespace DataAccess.Migrations
 
                     b.HasOne("DataAccess.Entities.BookLoanEntity", "BookLoan")
                         .WithOne("BookItem")
-                        .HasForeignKey("DataAccess.Entities.BookItemEntity", "BookLoanId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("DataAccess.Entities.BookItemEntity", "BookLoanId");
 
                     b.Navigation("Book");
 
@@ -486,39 +420,13 @@ namespace DataAccess.Migrations
                 {
                     b.HasOne("DataAccess.Entities.LibrarianEntity", "Librarian")
                         .WithMany("BookLoans")
-                        .HasForeignKey("LoanedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ApprovedBy");
 
                     b.HasOne("DataAccess.Entities.CustomerEntity", "Customer")
-                        .WithMany("BookLoans")
-                        .HasForeignKey("LoanedTo")
+                        .WithOne("BookLoan")
+                        .HasForeignKey("DataAccess.Entities.BookLoanEntity", "LoanedBy")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("Librarian");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.BookRequestEntity", b =>
-                {
-                    b.HasOne("DataAccess.Entities.LibrarianEntity", "Librarian")
-                        .WithMany("BookRequests")
-                        .HasForeignKey("AuditedBy");
-
-                    b.HasOne("DataAccess.Entities.BookItemEntity", "BookItem")
-                        .WithMany("BookRequests")
-                        .HasForeignKey("BookItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DataAccess.Entities.CustomerEntity", "Customer")
-                        .WithMany("BookRequests")
-                        .HasForeignKey("RequestedBy")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BookItem");
 
                     b.Navigation("Customer");
 
@@ -577,11 +485,6 @@ namespace DataAccess.Migrations
                     b.Navigation("BookItems");
                 });
 
-            modelBuilder.Entity("DataAccess.Entities.BookItemEntity", b =>
-                {
-                    b.Navigation("BookRequests");
-                });
-
             modelBuilder.Entity("DataAccess.Entities.BookLoanEntity", b =>
                 {
                     b.Navigation("BookItem")
@@ -590,16 +493,12 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
                 {
-                    b.Navigation("BookLoans");
-
-                    b.Navigation("BookRequests");
+                    b.Navigation("BookLoan");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.LibrarianEntity", b =>
                 {
                     b.Navigation("BookLoans");
-
-                    b.Navigation("BookRequests");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.PublisherEntity", b =>

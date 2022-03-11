@@ -12,4 +12,5 @@ public interface IBookItemsRepository
     Task<bool> Contains(Guid bookItemId);
     Task<BookItem?> UpdateBookItemStatus(Guid bookItemId, BookItemStatusEnumeration bookStatus);
     Task<bool> IsBarcodeExisting(string barcode);
+    Task<bool> HasAvailableItems(Guid bookId);
 }

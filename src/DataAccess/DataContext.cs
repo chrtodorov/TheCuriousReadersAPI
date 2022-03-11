@@ -18,6 +18,8 @@ public class DataContext : DbContext
     public DbSet<LibrarianEntity> Librarians { get; set; } = null!;
     public DbSet<AddressEntity> Addresses { get; set; } = null!;
     public DbSet<RoleEntity> Roles { get; set; } = null!;
+    public DbSet<BookRequestEntity> BookRequests { get; set; } = null!;
+    public DbSet<BookLoanEntity> BookLoans { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -94,6 +96,45 @@ public class DataContext : DbContext
             builder
                 .HasMany(r => r.Users)
                 .WithOne(u => u.Role);
+        });
+
+        modelBuilder.Entity<BookLoanEntity>(builder =>
+        {
+            builder
+                .HasOne(le => le.Customer)
+                .WithMany(c => c.BookLoans)
+                .HasForeignKey(le => le.LoanedTo);
+
+            builder
+                .HasOne(le => le.Librarian)
+                .WithMany(l => l.BookLoans)
+                .HasForeignKey(le => le.LoanedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .HasOne(le => le.BookItem)
+                .WithOne(i => i.BookLoan)
+                .HasForeignKey<BookItemEntity>(i => i.BookLoanId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<BookRequestEntity>(builder =>
+        {
+            builder
+                .HasOne(re => re.Customer)
+                .WithMany(c => c.BookRequests)
+                .HasForeignKey(re => re.RequestedBy);
+
+            builder
+                .HasOne(re => re.Librarian)
+                .WithMany(l => l.BookRequests)
+                .HasForeignKey(re => re.AuditedBy);
+
+            builder
+                .HasOne(re => re.BookItem)
+                .WithMany(i => i.BookRequests)
+                .HasForeignKey(re => re.BookItemId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<AuthorEntity>()
