@@ -34,4 +34,5 @@ public class Book
     public ICollection<Guid>? AuthorsIds { get; set; }
 
     public ICollection<BookItem>? BookItems { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

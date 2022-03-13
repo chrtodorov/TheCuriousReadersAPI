@@ -18,6 +18,9 @@ public class DataContext : DbContext
     public DbSet<LibrarianEntity> Librarians { get; set; } = null!;
     public DbSet<AddressEntity> Addresses { get; set; } = null!;
     public DbSet<RoleEntity> Roles { get; set; } = null!;
+    public DbSet<BookRequestEntity> BookRequests { get; set; } = null!;
+    public DbSet<BookLoanEntity> BookLoans { get; set; } = null!;
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,11 +98,79 @@ public class DataContext : DbContext
                 .WithOne(u => u.Role);
         });
 
+        modelBuilder.Entity<BookLoanEntity>(builder =>
+        {
+            builder
+                .HasOne(le => le.Customer)
+                .WithMany(c => c.BookLoans)
+                .HasForeignKey(le => le.LoanedTo);
+
+            builder
+                .HasOne(le => le.Librarian)
+                .WithMany(l => l.BookLoans)
+                .HasForeignKey(le => le.LoanedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder
+                .HasOne(le => le.BookItem)
+                .WithOne(i => i.BookLoan)
+                .HasForeignKey<BookItemEntity>(i => i.BookLoanId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<BookRequestEntity>(builder =>
+        {
+            builder
+                .HasOne(re => re.Customer)
+                .WithMany(c => c.BookRequests)
+                .HasForeignKey(re => re.RequestedBy);
+
+            builder
+                .HasOne(re => re.Librarian)
+                .WithMany(l => l.BookRequests)
+                .HasForeignKey(re => re.AuditedBy);
+
+            builder
+                .HasOne(re => re.BookItem)
+                .WithMany(i => i.BookRequests)
+                .HasForeignKey(re => re.BookItemId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
         modelBuilder.Entity<AuthorEntity>()
             .HasIndex(a => a.Name).IsUnique();
 
         modelBuilder.Entity<PublisherEntity>()
             .HasIndex(p => p.Name).IsUnique();
 
+
+    }
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        Save();
+
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+    public void Save()
+    {
+       var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.Entity is AuditableEntity && 
+            (e.State == EntityState.Added 
+            || e.State == EntityState.Modified) 
+            );
+
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+               ((AuditableEntity)entry.Entity).CreatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                Entry((AuditableEntity)entry.Entity).Property(p => p.CreatedAt).IsModified = false;
+            }
+            ((AuditableEntity)entry.Entity).ModifiedAt = DateTime.UtcNow;
+        }
     }
 }

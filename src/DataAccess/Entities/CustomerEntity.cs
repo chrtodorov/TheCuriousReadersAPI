@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace DataAccess.Entities
 {
 
-    public class CustomerEntity
+    public class CustomerEntity:AuditableEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -15,6 +15,9 @@ namespace DataAccess.Entities
         public Guid AddressId { get; set; }
 
         [Required]
-        public virtual UserEntity User { get; set; } = null!;
+        public UserEntity User { get; set; } = null!;
+
+        public ICollection<BookLoanEntity> BookLoans { get; set; } = new HashSet<BookLoanEntity>();
+        public ICollection<BookRequestEntity> BookRequests { get; set; } = new HashSet<BookRequestEntity>();
     }
 }

@@ -1,5 +1,7 @@
-﻿using BusinessLayer.Interfaces.Books;
+﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
+using BusinessLayer.Responses;
 using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +20,18 @@ public class BooksRepository : IBooksRepository
         this._logger = logger;
     }
 
-    public async Task<Book?> Get(Guid bookId)
+    public async Task<BookDetailsResponse?> Get(Guid bookId)
     {
         _logger.LogInformation("Get Book with {@BookId}", bookId);
 
-        var bookEntity = await GetById(bookId, false);
+        var bookEntity = await _dataContext.Books
+            .Include(b => b.Authors)
+            .Include(b => b.Publisher)
+            .Where(b => b.BookId == bookId)
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
 
-        return bookEntity?.ToBook();
+        return bookEntity?.ToBookDetailsResponse();
     }
 
     public async Task<BookEntity?> GetById(Guid bookId, bool tracking = true)
@@ -36,6 +43,28 @@ public class BooksRepository : IBooksRepository
             query.AsNoTracking();
 
         return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Book>> GetLatest()
+    {
+        var bookList = await _dataContext.Books
+           .Include(b => b.Authors)
+           .OrderByDescending(b => b.CreatedAt)
+           .Take(20)
+           .Select(b => b.ToBook())
+           .AsNoTracking()
+           .ToListAsync();
+
+        _logger.LogInformation("Get latest books");
+
+        return bookList;
+    }
+
+    public async Task<int> GetNumber()
+    {
+        var bookCount = await _dataContext.Books
+            .CountAsync();
+        return bookCount;
     }
 
     public async Task<PagedList<Book>> GetBooks(BookParameters bookParameters)
@@ -94,7 +123,6 @@ public class BooksRepository : IBooksRepository
         catch (DbUpdateException e)
         {
             _logger.LogCritical(e.ToString());
-            throw;
         }
 
         _logger.LogInformation("Create Book with {@BookId}", bookEntity.BookId);
@@ -141,7 +169,6 @@ public class BooksRepository : IBooksRepository
         catch (Exception e)
         {
             _logger.LogCritical(e.ToString());
-            throw;
         }
         
         return bookToUpdate.ToBook();
@@ -162,7 +189,6 @@ public class BooksRepository : IBooksRepository
             catch (DbUpdateException e)
             {
                 _logger.LogCritical(e.ToString());
-                throw;
             }
 
             _logger.LogInformation("Deleting Book with {@BookId}", bookId);
@@ -180,4 +206,25 @@ public class BooksRepository : IBooksRepository
     {
         return await _dataContext.Books.AnyAsync(b => b.Isbn == isbn);
     }
+
+    public async Task MakeUnavailable(Guid bookId)
+    {
+        var book = await GetById(bookId);
+        foreach (var bookItem in book.BookItems)
+        {
+            if (bookItem.BookStatus == BookItemStatusEnumeration.Available)
+            {
+                bookItem.BookStatus = BookItemStatusEnumeration.NotAvailable;
+            }
+        }
+        try
+        {
+            await _dataContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException e)
+        {
+            _logger.LogCritical(e.ToString());
+        }
+    }
+
 }

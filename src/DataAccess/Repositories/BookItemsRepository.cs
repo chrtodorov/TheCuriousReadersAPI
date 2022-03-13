@@ -107,7 +107,6 @@ public class BookItemsRepository : IBookItemsRepository
         return await _dataContext.BookItems.AnyAsync(b => b.BookItemId == bookItemId);
     }
         
-
     public async Task<BookItem?> UpdateBookItemStatus(Guid bookItemid, BookItemStatusEnumeration bookStatus)
     {
         var bookItemStatusEntity = await GetById(bookItemid);
@@ -136,5 +135,10 @@ public class BookItemsRepository : IBookItemsRepository
     public async Task<bool> IsBarcodeExisting(string barcode)
     {
         return await _dataContext.BookItems.AnyAsync(bi => bi.Barcode == barcode);
+    }
+
+    public async Task<bool> HasAvailableItems(Guid bookId)
+    {
+        return await _dataContext.BookItems.AnyAsync(i => i.BookId == bookId);
     }
 }

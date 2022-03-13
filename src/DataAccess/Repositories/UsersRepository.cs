@@ -13,7 +13,7 @@ namespace DataAccess
         private readonly DataContext _dbContext;
         private readonly ILogger<UsersRepository> _logger;
 
-        public UsersRepository(DataContext dbContext,ILogger<UsersRepository> logger)
+        public UsersRepository(DataContext dbContext, ILogger<UsersRepository> logger)
         {
             this._dbContext = dbContext;
             this._logger = logger;
@@ -58,6 +58,67 @@ namespace DataAccess
             }
 
             return userEntity.ToUser();
+        }
+
+        public async Task<Guid> GetUserSpecificId(Guid userId, string roleName)
+        {
+            var user = await this._dbContext.Users.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (user is null)
+            {
+                throw new ArgumentException($"User with id: {userId} does not exist");
+            }
+            var role = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == roleName.ToLower());
+
+            if (role is null)
+            {
+                throw new ArgumentException($"Role with name {roleName} does not exist!");
+            }
+
+            switch (role.Name)
+            {
+                case Roles.Administrator:
+                    var admin = await _dbContext.Administrators
+                        .Include(a => a.User)
+                        .FirstOrDefaultAsync(a => a.User.UserId == userId);
+                    if (admin is null)
+                    {
+                        throw new ArgumentException($"There is a mismatch between user with id: {userId} and role: {roleName}");
+                    }
+
+                    return admin.AdministartorId;
+
+                case Roles.Librarian:
+                    var librarian = await _dbContext.Librarians
+                        .Include(l => l.User)
+                        .FirstOrDefaultAsync(l => l.User.UserId == userId);
+                    if (librarian is null)
+                    {
+                        throw new ArgumentException($"There is a mismatch between user with id: {userId} and role: {roleName}");
+                    }
+
+                    return librarian.LibrarianId;
+
+                case Roles.Customer:
+                    var customer = await _dbContext.Customers
+                        .Include(c => c.User)
+                        .FirstOrDefaultAsync(c => c.User.UserId == userId);
+                    if (customer is null)
+                    {
+                        throw new ArgumentException($"There is a mismatch between user with id: {userId} and role: {roleName}");
+                    }
+
+                    return customer.CustomerId;
+
+                default:
+                    throw new ArgumentException($"Role: {roleName} does not exist");
+            }
+        }
+
+        public async Task<int> GetCount()
+        {
+            var query = await _dbContext.Customers
+                .CountAsync();
+            return query;
         }
 
         public async Task Register(User user)

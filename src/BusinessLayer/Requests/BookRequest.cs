@@ -9,6 +9,7 @@ public class BookRequest
     [MaxLength(17)]
     public string Isbn { get; set; } = string.Empty;
 
+
     [Required]
     [MaxLength(50)]
     public string Title { get; set; } = string.Empty;

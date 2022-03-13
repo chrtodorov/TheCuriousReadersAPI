@@ -11,5 +11,8 @@ namespace DataAccess.Entities
 
         [Required]
         public UserEntity User { get; set; } = null!;
+
+        public ICollection<BookLoanEntity> BookLoans { get; set; } = new HashSet<BookLoanEntity>();
+        public ICollection<BookRequestEntity> BookRequests { get; set; } = new HashSet<BookRequestEntity>();
     }
 }

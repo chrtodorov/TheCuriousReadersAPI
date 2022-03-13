@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
+using BusinessLayer.Responses;
 using BusinessLayer.Services;
 using NSubstitute;
 using NUnit.Framework;
@@ -36,6 +37,17 @@ public class BooksServiceTests
         }
 
     };
+    private readonly BookDetailsResponse _bookDataResponse = new()
+    {
+        BookId = Guid.Parse("9fc0ae59-15cb-4a19-9916-4c431383fab5"),
+        Isbn = "1234567890",
+        Title = "Harry Potter",
+        Description = "Harry Potter Book",
+        Genre = "Fantasy",
+        CoverUrl = "http://coverurl",
+        Publisher = new Publisher() { Name = "Me4o", PublisherId = Guid.Parse("399b3630-f62a-478b-a51b-11d2367136d2") },
+        Authors = new List<Author>() { new Author() { Name = "Author", AuthorId = Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd105") } }
+    };
 
 
     [SetUp]
@@ -49,7 +61,7 @@ public class BooksServiceTests
     [Test]
     public async Task GetAsync_Success()
     {
-        _booksRepository.Get(_bookData.BookId).Returns(_bookData);
+        _booksRepository.Get(_bookDataResponse.BookId).Returns(_bookDataResponse);
 
         var book = await _booksService.Get(_bookData.BookId);
 
@@ -59,7 +71,7 @@ public class BooksServiceTests
     [Test]
     public async Task GetAsync_Fail()
     {
-        _booksRepository.Get(_bookData.BookId).Returns(_bookData);
+        _booksRepository.Get(_bookDataResponse.BookId).Returns(_bookDataResponse);
 
         var book = await _booksService.Get(new Guid());
 

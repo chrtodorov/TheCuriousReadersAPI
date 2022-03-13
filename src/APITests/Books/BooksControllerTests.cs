@@ -67,26 +67,6 @@ public class BooksControllerTests
     }
 
     [Test]
-    public async Task GetAsync_Ok()
-    {
-        _booksService.Get(Arg.Any<Guid>()).Returns(_bookData);
-
-        var result = await _booksController.Get(_bookData.BookId);
-
-        await _booksService.Received(1).Get(Arg.Any<Guid>());
-
-        var okResult = result as OkObjectResult;
-
-        Assert.IsNotNull(okResult);
-        Assert.AreEqual(200, okResult?.StatusCode);
-
-        var bookResult = okResult?.Value as Book;
-
-        Assert.IsNotNull(bookResult);
-        Assert.AreEqual(_bookData, bookResult);
-    }
-
-    [Test]
     public async Task GetAsync_NotFound()
     {
         var fakeId = Guid.NewGuid();
