@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Models;
+﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Models;
 using BusinessLayer.Requests;
 using BusinessLayer.Responses;
 using DataAccess.Entities;
@@ -85,6 +86,20 @@ namespace DataAccess.Mappers
             return new AdministratorEntity
             {
                 User = user,
+            };
+        }
+
+        public static UserResponse ToUserResponse(this CustomerEntity customerEntity)
+        {
+            return new UserResponse
+            {
+                UserId = customerEntity.User.UserId,
+                FirstName = customerEntity.User.FirstName,
+                LastName = customerEntity.User.LastName,
+                EmailAddress = customerEntity.User.EmailAddress,
+                PhoneNumber = customerEntity.User.PhoneNumber,
+                RoleName = Roles.Customer,
+                Status = customerEntity.User.Status
             };
         }
     }

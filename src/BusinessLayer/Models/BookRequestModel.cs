@@ -1,4 +1,5 @@
 ﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Responses;
 using System.ComponentModel.DataAnnotations;
 
 namespace BusinessLayer.Models
@@ -16,10 +17,14 @@ namespace BusinessLayer.Models
         [Required]
         public Guid RequestedBy { get; set; }
 
+        public UserResponse Customer { get; set; } = null!;
+
         public Guid? AuditedBy { get; set; }
 
         [Required]
         public Book Book { get; set; } = null!;
         public Guid BookId { get; set; }
+
+        public Guid BookItemId { get; set; }
     }
 }

@@ -15,10 +15,10 @@ namespace BusinessLayer.Services
             this.bookItemsRepository = bookItemsRepository;
         }
 
-        public PagedList<BookRequestModel> GetAllRequests(BookRequestParameters bookRequestParameters)
+        public PagedList<BookRequestModel> GetAllRequests(PagingParameters bookRequestParameters)
              => bookRequestsRepository.GetAllRequests(bookRequestParameters);
 
-        public async Task<PagedList<BookRequestModel>> GetUserRequests(Guid customerId, BookRequestParameters bookRequestParameters)
+        public async Task<PagedList<BookRequestModel>> GetUserRequests(Guid customerId, PagingParameters bookRequestParameters)
             => await bookRequestsRepository.GetUserRequests(customerId, bookRequestParameters);
 
 
