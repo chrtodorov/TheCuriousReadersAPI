@@ -8,9 +8,9 @@ namespace DataAccess.Mappers
 {
     public static class BookRequestsMapper
     {
-        public static BookRequestModel ToBookRequest(this BookRequestEntity bookRequestEntity)
+        public static BookRequestModel ToBookRequest(this BookRequestEntity bookRequestEntity, bool withCustomer = false)
         {
-            return new BookRequestModel
+            return withCustomer ? new BookRequestModel
             {
                 BookRequestId = bookRequestEntity.BookRequestId,
                 Status = bookRequestEntity.Status,
@@ -18,6 +18,17 @@ namespace DataAccess.Mappers
                 RequestedBy = bookRequestEntity.RequestedBy,
                 Book = bookRequestEntity.BookItem?.Book.ToBookWithoutItems(),
                 CreatedAt = bookRequestEntity.CreatedAt,
+                BookItemId = bookRequestEntity.BookItem.BookItemId,
+                Customer = bookRequestEntity.Customer?.ToUserResponse(),
+            } : new BookRequestModel
+            {
+                BookRequestId = bookRequestEntity.BookRequestId,
+                Status = bookRequestEntity.Status,
+                AuditedBy = bookRequestEntity.AuditedBy,
+                RequestedBy = bookRequestEntity.RequestedBy,
+                Book = bookRequestEntity.BookItem?.Book.ToBookWithoutItems(),
+                CreatedAt = bookRequestEntity.CreatedAt,
+                BookItemId = bookRequestEntity.BookItem.BookItemId,
             };
         }
 
@@ -52,9 +63,27 @@ namespace DataAccess.Mappers
             };
         }
 
+        public static LibrarianBookRequestResponse ToLibrarianBookRequestResponse(this BookRequestModel bookRequest)
+        {
+            return new LibrarianBookRequestResponse
+            {
+                CreatedAt = bookRequest.CreatedAt,
+                Status = bookRequest.Status,
+                Book = bookRequest.Book,
+                RequestedBy = bookRequest.Customer,
+                RequestedById = bookRequest.RequestedBy,
+                BookCopyId = bookRequest.BookItemId,
+            };
+        }
+
         public static PagedList<BookRequestResponse> ToPagedList(this IEnumerable<BookRequestResponse> data, int totalCount, int currentPage, int pageSize)
         {
             return new PagedList<BookRequestResponse>(data.ToList(), totalCount, currentPage, pageSize);
+        }
+
+        public static PagedList<LibrarianBookRequestResponse> ToPagedList(this IEnumerable<LibrarianBookRequestResponse> data, int totalCount, int currentPage, int pageSize)
+        {
+            return new PagedList<LibrarianBookRequestResponse>(data.ToList(), totalCount, currentPage, pageSize);
         }
     }
 }

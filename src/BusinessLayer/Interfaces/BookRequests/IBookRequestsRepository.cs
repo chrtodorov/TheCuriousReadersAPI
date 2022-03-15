@@ -4,8 +4,8 @@ namespace BusinessLayer.Interfaces.BookRequests
 {
     public interface IBookRequestsRepository
     {
-        PagedList<BookRequestModel> GetAllRequests(BookRequestParameters bookRequestParameters);
+        PagedList<BookRequestModel> GetAllRequests(PagingParameters bookRequestParameters);
         Task<BookRequestModel> MakeRequest(BookRequestModel bookRequest);
-        Task<PagedList<BookRequestModel>> GetUserRequests(Guid customerId, BookRequestParameters bookRequestParameters);
+        Task<PagedList<BookRequestModel>> GetUserRequests(Guid customerId, PagingParameters bookRequestParameters);
     }
 }

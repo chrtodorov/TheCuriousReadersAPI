@@ -18,23 +18,25 @@ namespace DataAccess.Repositories
             this._logger = logger;
         }
 
-        public PagedList<BookRequestModel> GetAllRequests(BookRequestParameters bookRequestParameters)
+        public PagedList<BookRequestModel> GetAllRequests(PagingParameters bookRequestParameters)
         {
-            var booksQuery = _dbContext.BookRequests
+            var bookRequestsQuery = _dbContext.BookRequests
                 .Where(r => r.Status == BookRequestStatus.Pending)
+                .Include(r => r.Customer)
+                    .ThenInclude(c => c.User)
                 .Include(r => r.BookItem)
                     .ThenInclude(i => i.Book)
                         .ThenInclude(b => b.Authors)
                 .Include(r => r.BookItem)
                     .ThenInclude(i => i.Book)
                         .ThenInclude(b => b.Publisher)
-                .Select(r => r.ToBookRequest())
+                .Select(r => r.ToBookRequest(true))
                 .AsNoTracking();
 
-            return PagedList<BookRequestModel>.ToPagedList(booksQuery, bookRequestParameters.PageNumber, bookRequestParameters.PageSize);
+            return PagedList<BookRequestModel>.ToPagedList(bookRequestsQuery, bookRequestParameters.PageNumber, bookRequestParameters.PageSize);
         }
 
-        public async Task<PagedList<BookRequestModel>> GetUserRequests(Guid customerId, BookRequestParameters bookRequestParameters)
+        public async Task<PagedList<BookRequestModel>> GetUserRequests(Guid customerId, PagingParameters bookRequestParameters)
         {
             var customer = await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId);
             if (customer is null)
@@ -50,7 +52,7 @@ namespace DataAccess.Repositories
                 .Include(r => r.BookItem)
                     .ThenInclude(i => i.Book)
                         .ThenInclude(b => b.Publisher)
-                .Select(r => r.ToBookRequest());
+                .Select(r => r.ToBookRequest(false));
 
             return PagedList<BookRequestModel>.ToPagedList(bookRequestsQuery, bookRequestParameters.PageNumber, bookRequestParameters.PageSize);
         }
@@ -77,11 +79,10 @@ namespace DataAccess.Repositories
             {
                 throw new ArgumentException($"There are no availbale copies of a book with id: {bookRequest.BookId}");
             }
-
             var createdRequest = await _dbContext.BookRequests.AddAsync(bookRequest.ToBookRequestEntity(bookItem.BookItemId));
             bookItem.BookStatus = BookItemStatusEnumeration.Reserved;
             await _dbContext.SaveChangesAsync();
-            return createdRequest.Entity.ToBookRequest();
+            return createdRequest.Entity.ToBookRequest(false);
         }
     }
 }

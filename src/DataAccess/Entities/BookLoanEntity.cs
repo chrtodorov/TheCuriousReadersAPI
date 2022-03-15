@@ -10,7 +10,6 @@ namespace DataAccess.Entities
         public Guid BookLoanId { get; set; }
         public DateTime From { get; set; }
         public DateTime To { get; set; }
-        public bool ShouldBeReturnedInTwoWeeks => new TimeSpan(DateTime.Now.Ticks) >= (To - new DateTime(0, 0, 14));
         public int TimesExtended { get; set; }
 
         [Required]
@@ -22,5 +21,5 @@ namespace DataAccess.Entities
 
         [Required]
         public BookItemEntity BookItem { get; set; } = null!;
-    }        
+    }
 }
