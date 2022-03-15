@@ -20,7 +20,7 @@ public class DataContext : DbContext
     public DbSet<RoleEntity> Roles { get; set; } = null!;
     public DbSet<BookRequestEntity> BookRequests { get; set; } = null!;
     public DbSet<BookLoanEntity> BookLoans { get; set; } = null!;
-
+    public DbSet<BlobMetadata> BlobsMetadata { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +53,11 @@ public class DataContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
             builder
                 .HasIndex(b => b.Isbn).IsUnique();
+            builder
+                .HasOne(b => b.BlobMetadata)
+                .WithOne(b => b.BookEntity)
+                .HasForeignKey<BookEntity>(b => b.BlobMetadataId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<BookItemEntity>(builder =>

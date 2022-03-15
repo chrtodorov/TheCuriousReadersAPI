@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BusinessLayer.Interfaces;
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
@@ -16,6 +17,7 @@ public class BooksServiceTests
     private IBooksService _booksService;
     private IBooksRepository _booksRepository;
     private IBookItemsRepository _bookItemsRepository;
+    private IBlobService _blobService;
 
     private readonly Book _bookData = new()
     {
@@ -55,7 +57,8 @@ public class BooksServiceTests
     {
         _booksRepository = Substitute.For<IBooksRepository>();
         _bookItemsRepository = Substitute.For<IBookItemsRepository>();
-        _booksService = new BooksService(_booksRepository, _bookItemsRepository);
+        _blobService = Substitute.For<IBlobService>();
+        _booksService = new BooksService(_booksRepository, _bookItemsRepository, _blobService);
     }
 
     [Test]
@@ -147,7 +150,7 @@ public class BooksServiceTests
     [Test]
     public async Task DeleteAsync()
     {
-        _booksRepository.Contains(_bookData.BookId).Returns(true);
+        _booksRepository.Get(_bookData.BookId).Returns(_bookDataResponse);
         await _booksService.Delete(_bookData.BookId);
 
         await _booksRepository.Received(1).Delete(_bookData.BookId);

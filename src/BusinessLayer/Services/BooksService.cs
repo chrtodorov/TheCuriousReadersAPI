@@ -1,4 +1,4 @@
-﻿using BusinessLayer.Enumerations;
+﻿using BusinessLayer.Interfaces;
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
@@ -10,11 +10,12 @@ public class BooksService : IBooksService
 {
     private readonly IBooksRepository _bookRepository;
     private readonly IBookItemsRepository _bookItemsRepository;
-
-    public BooksService(IBooksRepository bookRepository, IBookItemsRepository bookItemsRepository)
+    private readonly IBlobService _blobService;
+    public BooksService(IBooksRepository bookRepository, IBookItemsRepository bookItemsRepository, IBlobService blobService)
     {
         this._bookRepository = bookRepository;
         this._bookItemsRepository = bookItemsRepository;
+        _blobService = blobService;
     }
 
     public async Task<BookDetailsResponse?> Get(Guid bookId) => await _bookRepository.Get(bookId);
@@ -61,10 +62,12 @@ public class BooksService : IBooksService
 
     public async Task Delete(Guid bookId)
     {
-        if (!await _bookRepository.Contains(bookId))
-        {
+        var book = await Get(bookId);
+        if(book is null)
             throw new ArgumentException("Book cannot be found!");
-        }
+
+        var blobName = book.CoverUrl.Split('/').Last();
+        await _blobService.DeleteAsync(blobName);
         await _bookRepository.Delete(bookId);
     }
 

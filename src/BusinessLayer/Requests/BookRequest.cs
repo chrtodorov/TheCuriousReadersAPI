@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using BusinessLayer.Models;
 
 namespace BusinessLayer.Requests;
 
@@ -23,8 +22,11 @@ public class BookRequest
     public string Genre { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(100)]
+    [MaxLength(1000)]
     public string CoverUrl { get; set; } = string.Empty;
+
+    [Required]
+    public Guid? BlobId { get; set; }
 
     [Required]
     public Guid? PublisherId { get; set; }
