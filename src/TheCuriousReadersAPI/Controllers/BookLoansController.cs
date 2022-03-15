@@ -74,5 +74,24 @@ namespace API.Controllers
             var responseData = pagedList.Data.Select(l => l.ToBookLoanResponse());
             return Ok(responseData.ToPagedList(pagedList.TotalCount, pagedList.CurrentPage, pagedList.PageSize));
         }
+
+        [HttpPut("{bookLoanId}")]
+        public async Task<IActionResult> ProlongLoan(Guid bookLoanId, [FromBody] ProlongRequest prolongRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var bookloan = await bookLoansService.ProlongLoan(bookLoanId, prolongRequest);
+                return Ok(bookloan.ToBookLoanResponse());
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("Prolong", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
     }
 }

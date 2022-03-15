@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Models;
+using BusinessLayer.Requests;
 using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,29 @@ namespace DataAccess.Repositories
 
             var fullCreatedEntity = await GetBookLoansQuery().FirstAsync(l => l.BookLoanId == createdEntity.Entity.BookLoanId);
             return fullCreatedEntity.ToBookLoan();
+        }
+
+        public async Task<BookLoan> ProlongLoan(Guid bookLoanId, ProlongRequest prolongRequest)
+        {
+            var bookLoanEntity = await GetBookLoansQuery()
+                .FirstOrDefaultAsync(l => l.BookLoanId == bookLoanId);
+
+            if (bookLoanEntity is null)
+            {
+                throw new ArgumentException($"Book loan with id: {bookLoanId} does not exist");
+            }
+
+            if (bookLoanEntity.To >= prolongRequest.ExtendedTo)
+            {
+                throw new ArgumentException("Requested end time is before the actual loan end time");
+            }
+
+            bookLoanEntity.To = prolongRequest.ExtendedTo;
+            bookLoanEntity.TimesExtended++;
+            _dbContext.Update(bookLoanEntity);
+            await _dbContext.SaveChangesAsync();
+
+            return bookLoanEntity.ToBookLoan();
         }
 
         private IQueryable<BookLoanEntity> GetBookLoansQuery()

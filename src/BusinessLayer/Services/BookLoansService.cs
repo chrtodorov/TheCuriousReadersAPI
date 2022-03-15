@@ -1,5 +1,6 @@
 ﻿using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Models;
+using BusinessLayer.Requests;
 
 namespace BusinessLayer.Services
 {
@@ -23,5 +24,8 @@ namespace BusinessLayer.Services
 
         public async Task<BookLoan> LoanBook(BookLoan bookLoan)
             => await bookLoansRepository.LoanBook(bookLoan);
+
+        public async Task<BookLoan> ProlongLoan(Guid bookLoanId, ProlongRequest prolongRequest)
+            => await bookLoansRepository.ProlongLoan(bookLoanId, prolongRequest);
     }
 }
