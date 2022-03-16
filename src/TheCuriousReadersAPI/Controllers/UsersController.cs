@@ -167,5 +167,14 @@ namespace API.Controllers
             var numberOfUsers = await usersService.GetCount();
             return Ok(numberOfUsers);
         }
+
+        [HttpGet]
+        [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
+        public async Task<IActionResult> GetAllUsers([FromQuery] string filter)
+        {
+            var users = await usersService.GetUsers(filter);
+            return Ok(users.Select(u => u.ToUserResponse()));
+        }
     }
+
 }

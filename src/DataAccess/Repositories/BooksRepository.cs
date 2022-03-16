@@ -70,36 +70,37 @@ public class BooksRepository : IBooksRepository
     public async Task<PagedList<Book>> GetBooks(BookParameters bookParameters)
     {
         var query = _dataContext.Books.Include(b => b.Authors).AsNoTracking();
+        var result = Enumerable.Empty<BookEntity>();
 
         if (!string.IsNullOrEmpty(bookParameters.Title))
         {
-            query = query.Where(b => b.Title.Contains(bookParameters.Title));
+            result = result.Union(query.Where(b => b.Title.Contains(bookParameters.Title)));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.Author))
         {
             var author = await _dataContext.Authors.FirstOrDefaultAsync(a => a.Name == bookParameters.Author);
-            query = query.Where(b => b.Authors!.Contains(author!));
+            result = result.Union(query.Where(b => b.Authors!.Contains(author!)));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.Publisher))
         {
-            query = query.Where(b => b.Publisher!.Name == bookParameters.Publisher);
+            result = result.Union(query.Where(b => b.Publisher!.Name == bookParameters.Publisher));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.DescriptionKeyword))
         {
-            query = query.Where(b => b.Description.Contains(bookParameters.DescriptionKeyword));
+            result = result.Union(query.Where(b => b.Description.Contains(bookParameters.DescriptionKeyword)));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.Genre))
         {
-            query = query.Where(b => b.Genre == bookParameters.Genre);
+            result = result.Union(query.Where(b => b.Genre == bookParameters.Genre));
         }
-
+        result = result.Count() == 0 ? query : result;
         _logger.LogInformation("Get all books");
 
-        return PagedList<Book>.ToPagedList(query
+        return PagedList<Book>.ToPagedList(result.AsQueryable()
             .OrderBy(b => b.Title)
             .Select(b => b.ToBook()),
             bookParameters.PageNumber,

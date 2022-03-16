@@ -227,5 +227,14 @@ namespace DataAccess
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<User>> GetUsers(string filter)
+        {
+            return await _dbContext.Users
+                .Where(u => u.EmailAddress.Contains(filter))
+                .Include(u => u.Role)
+                .Select(u => u.ToUser())
+                .ToListAsync();
+        }
     }
 }
