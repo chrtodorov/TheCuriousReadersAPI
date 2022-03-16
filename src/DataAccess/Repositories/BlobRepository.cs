@@ -3,16 +3,19 @@ using BusinessLayer.Requests;
 using BusinessLayer.Responses;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace DataAccess.Repositories
 {
     public class BlobRepository : IBlobRepository
     {
         private readonly DataContext _dataContext;
+        private readonly ILogger<BlobRepository> _logger;
 
-        public BlobRepository(DataContext dataContext)
+        public BlobRepository(DataContext dataContext, ILogger<BlobRepository> logger)
         {
-            this._dataContext = dataContext;
+            _dataContext = dataContext;
+            _logger = logger;
         }
 
         public async Task<BlobMetadataResponse> Create(BlobMetadataRequest blobRequest)
@@ -23,12 +26,13 @@ namespace DataAccess.Repositories
             {
                 await _dataContext.BlobsMetadata.AddAsync(blobMetadata);
                 await _dataContext.SaveChangesAsync();
-                return blobMetadata.ToBlobResponse();
+                
             }
             catch (DbUpdateException e)
             {
-                throw new ArgumentException("Error while trying to create BlobMetadata");
+                _logger.LogCritical(e.Message);
             }
+            return blobMetadata.ToBlobResponse();
         }
 
         public async Task Delete(string name)
@@ -38,16 +42,15 @@ namespace DataAccess.Repositories
                 var blob = await _dataContext.BlobsMetadata
                     .FirstOrDefaultAsync(b => b.BlobName == name);
                 if (blob is null)
-                    throw new ArgumentException("Cannot find BlobMetadata with this ID: " + name);
+                   return;
 
                 _dataContext.BlobsMetadata.Remove(blob);
                 await _dataContext.SaveChangesAsync();
             }
             catch (DbUpdateException e)
             {
-                throw new ArgumentException("Error while trying to delete BlobMetadata");
+                _logger.LogCritical(e.Message);
             }
-            
         }
     }
 }

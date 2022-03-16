@@ -4,6 +4,7 @@ using BusinessLayer.Models;
 using BusinessLayer.Responses;
 using DataAccess.Entities;
 using DataAccess.Mappers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -123,7 +124,7 @@ public class BooksRepository : IBooksRepository
         }
         catch (DbUpdateException e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogCritical(e.Message);
         }
 
         _logger.LogInformation("Create Book with {@BookId}", bookEntity.BookId);
@@ -169,7 +170,7 @@ public class BooksRepository : IBooksRepository
         }
         catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogCritical(e.Message);
         }
         
         return bookToUpdate.ToBook();
@@ -189,7 +190,10 @@ public class BooksRepository : IBooksRepository
             }
             catch (DbUpdateException e)
             {
-                _logger.LogCritical(e.ToString());
+                if (e.GetBaseException() is SqlException {Number: 547})
+                {
+                    throw new ArgumentException("All book requests and loans must be completed before deleting this book!");
+                }
             }
 
             _logger.LogInformation("Deleting Book with {@BookId}", bookId);
@@ -224,8 +228,7 @@ public class BooksRepository : IBooksRepository
         }
         catch (DbUpdateException e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogCritical(e.Message);
         }
     }
-
 }

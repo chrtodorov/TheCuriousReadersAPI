@@ -48,7 +48,7 @@ public class BooksService : IBooksService
     {
         if (!await _bookRepository.Contains(bookId))
         {
-            throw new ArgumentException("Book cannot be found!");
+            throw new ArgumentNullException(nameof(book), "Book cannot be found!");
         }
 
         var bookFromDb = await _bookRepository.Get(bookId);
@@ -64,11 +64,11 @@ public class BooksService : IBooksService
     {
         var book = await Get(bookId);
         if(book is null)
-            throw new ArgumentException("Book cannot be found!");
+            throw new ArgumentNullException(nameof(book), "Book cannot be found!");
 
         var blobName = book.CoverUrl.Split('/').Last();
-        await _blobService.DeleteAsync(blobName);
         await _bookRepository.Delete(bookId);
+        await _blobService.DeleteAsync(blobName);
     }
 
     public async Task MakeUnavailable(Guid bookId) => await _bookRepository.MakeUnavailable(bookId);

@@ -109,9 +109,7 @@ public class BlobService : IBlobService
     public async Task DeleteAsync(string blobName)
     {
         var blobClient = _blobContainerClient.GetBlobClient(blobName);
-        if (!await blobClient.DeleteIfExistsAsync())
-            throw new ArgumentException("Cannot find blob with that name in the blob storage");
-
+        await blobClient.DeleteIfExistsAsync();
         await _blobRepository.Delete(blobName);
     }
 }
