@@ -105,6 +105,26 @@ public class BooksControllerTests
     }
 
     [Test]
+    public async Task GetLatest()
+    {
+        var books = new List<Book> { _bookData };
+
+        _booksService.GetLatest().Returns(books);
+
+        var list = await _booksController.GetLatest();
+
+        var okResult = list as OkObjectResult;
+
+        Assert.That(okResult, Is.Not.Null);
+        Assert.That(okResult.StatusCode, Is.EqualTo(200));
+
+        var listResult = okResult?.Value as List<Book>;
+
+        Assert.That(listResult, Is.Not.Null);
+        Assert.That(listResult, Is.EqualTo(books));
+    }
+
+    [Test]
     public async Task CreateAsync_Ok()
     {
         _booksService.Create(Arg.Any<Book>()).Returns(_bookData);
@@ -195,5 +215,50 @@ public class BooksControllerTests
         await _booksService.Received(1).Delete(Arg.Any<Guid>());
 
         Assert.IsNotNull(result);
+    }
+
+    [Test]
+    public async Task MakeUnavailable()
+    {
+        await _booksService.MakeUnavailable(Arg.Any<Guid>());
+
+        var result = await _booksController.MakeUnavailable(_bookData.BookId);
+        await _booksService.Received(1).MakeUnavailable(Arg.Any<Guid>());
+
+        Assert.IsNotNull(result);
+    }
+
+    [Test]
+    public async Task MakeUnavailable_NotFound()
+    {
+        var fakeId = new Guid();
+        await _booksService.MakeUnavailable(Arg.Any<Guid>());
+
+        var result = await _booksController.MakeUnavailable(fakeId);
+        await _booksService.Received(1).MakeUnavailable(Arg.Any<Guid>());
+
+        var resultNotFound = result as NotFoundObjectResult;
+
+        Assert.That(resultNotFound, Is.Null);
+    }
+
+    [Test]
+    public async Task GetNumber()
+    {
+        var number = 1;
+        _booksService.GetNumber().Returns(number);
+
+        var result = await _booksController.GetNumber();
+        await _booksService.Received(1).GetNumber();
+
+        var okResult = result as OkObjectResult;
+
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(200, okResult?.StatusCode);
+
+        var numberOfBooks = okResult?.Value as int?;
+
+        Assert.IsNotNull(numberOfBooks);
+        Assert.AreEqual(number, numberOfBooks);
     }
 }

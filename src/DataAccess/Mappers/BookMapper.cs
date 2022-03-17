@@ -82,8 +82,10 @@ public static class BookMapper
             Description = bookEntity.Description,
             Genre = bookEntity.Genre,
             CoverUrl = bookEntity.CoverUrl,
+            BlobId = bookEntity.BlobMetadataId,
             Publisher = bookEntity.Publisher?.ToPublisher(),
-            Authors = bookEntity.Authors?.Select(a => a.ToAuthor()).ToList()
+            Authors = bookEntity.Authors?.Select(a => a.ToAuthor()).ToList(),
+            BookCopies = bookEntity.BookItems?.Select(a => a.ToBookItem()).ToList()
         };
     }
 }

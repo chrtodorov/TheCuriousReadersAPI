@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Interfaces;
+﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Interfaces;
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
@@ -71,7 +72,13 @@ public class BooksService : IBooksService
         await _blobService.DeleteAsync(blobName);
     }
 
-    public async Task MakeUnavailable(Guid bookId) => await _bookRepository.MakeUnavailable(bookId);
+    public async Task MakeUnavailable(Guid bookId) 
+    {
+        var book = await Get(bookId);
+        if(book is null)
+            throw new ArgumentException("Book cannot be found!");
+        await _bookRepository.MakeUnavailable(bookId); 
+    }
 
     public async Task<bool> Contains(Guid bookId) => await _bookRepository.Contains(bookId);
     public async Task<bool> IsIsbnExisting(string isbn) => await _bookRepository.IsIsbnExisting(isbn);

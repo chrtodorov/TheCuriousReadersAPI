@@ -35,7 +35,11 @@ public class BooksServiceTests
         },
         BookItems = new List<BookItem>()
         {
-            new BookItem() { Barcode = "123456"}
+            new BookItem() {
+                Barcode = "123456",
+                BookItemId = Guid.Parse("3b75f22e-6721-482b-a91f-7772a38fd105"),
+                BookStatus = 0
+            }
         }
 
     };
@@ -79,6 +83,32 @@ public class BooksServiceTests
         var book = await _booksService.Get(new Guid());
 
         Assert.IsNull(book);
+    }
+    [Test]
+    public async Task GetCount()
+    {
+        var number = 1;
+
+        _booksRepository.GetNumber().Returns(number);
+
+        var book = await _booksService.GetNumber();
+
+        await _booksRepository.Received(1).GetNumber();
+
+        Assert.That(book, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task GetLatest()
+    {
+        var books = new List<Book> { _bookData };
+
+        _booksRepository.GetLatest().Returns(books);
+
+        var receivedList = await _booksService.GetLatest();
+
+        Assert.That(books, Is.EqualTo(receivedList));
+
     }
 
     [Test]
@@ -151,9 +181,12 @@ public class BooksServiceTests
     public async Task DeleteAsync()
     {
         _booksRepository.Get(_bookData.BookId).Returns(_bookDataResponse);
+
         await _booksService.Delete(_bookData.BookId);
 
         await _booksRepository.Received(1).Delete(_bookData.BookId);
+
+        await _booksRepository.Received(1).Get(_bookData.BookId);
     }
 
     [Test]
@@ -166,5 +199,18 @@ public class BooksServiceTests
         await _booksRepository.Received(1).Contains(_bookData.BookId);
 
         Assert.IsTrue(result);
+    }
+
+    [Test]
+    public async Task MakeUnavailable()
+    {
+        _booksRepository.Get(_bookData.BookId).Returns(_bookDataResponse);
+
+        await _booksService.MakeUnavailable(_bookData.BookId);  
+
+        await _booksRepository.Received(1).MakeUnavailable(_bookData.BookId);
+
+        await _booksRepository.Received(1).Get(_bookData.BookId);
+
     }
 }

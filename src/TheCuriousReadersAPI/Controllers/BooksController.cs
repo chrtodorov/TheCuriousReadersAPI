@@ -143,7 +143,7 @@ namespace API.Controllers
             return Ok(numberOfBooks);
         }
 
-        [HttpPut("status/{bookId}")]
+        [HttpPut("{bookId}/status")]
         public async Task<IActionResult> MakeUnavailable(Guid bookId)
         {
             try

@@ -28,6 +28,7 @@ public class BooksRepository : IBooksRepository
         var bookEntity = await _dataContext.Books
             .Include(b => b.Authors)
             .Include(b => b.Publisher)
+            .Include(b => b.BookItems)
             .Where(b => b.BookId == bookId)
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -37,13 +38,14 @@ public class BooksRepository : IBooksRepository
 
     public async Task<BookEntity?> GetById(Guid bookId, bool tracking = true)
     {
-        var query = _dataContext.Books
+        var book = _dataContext.Books
             .Include(b => b.Authors)
+            .Include(b => b.BookItems)
             .Where(b => b.BookId == bookId);
         if (!tracking)
-            query.AsNoTracking();
+            book.AsNoTracking();
 
-        return await query.FirstOrDefaultAsync();
+        return await book.FirstOrDefaultAsync();
     }
 
     public async Task<List<Book>> GetLatest()
@@ -57,6 +59,10 @@ public class BooksRepository : IBooksRepository
            .ToListAsync();
 
         _logger.LogInformation("Get latest books");
+        if(bookList.Count == 0)
+        {
+            _logger.LogInformation("No books to show");
+        }
 
         return bookList;
     }
@@ -162,6 +168,20 @@ public class BooksRepository : IBooksRepository
             bookToUpdate.Authors?.Remove(author);
         }
 
+        var copiesToAdd = updatedBook.BookItems?.Where(c => bookToUpdate.BookItems!.All(d => c.Barcode != d.Barcode));
+
+        var copiesToRemove = updatedBook.BookItems?.Where(c => updatedBook.BookItems!.All(d => c.Barcode != d.Barcode));
+
+        foreach (var copy in copiesToAdd!)
+        {
+            bookToUpdate.BookItems?.Add(copy);
+            _dataContext.BookItems.Attach(copy);
+        }
+        foreach(var copy in copiesToRemove!)
+        {
+            bookToUpdate.BookItems?.Remove(copy);
+        }
+
         _logger.LogInformation("Update Book with {@BookId}", bookToUpdate.BookId);
 
         try
@@ -215,6 +235,10 @@ public class BooksRepository : IBooksRepository
     public async Task MakeUnavailable(Guid bookId)
     {
         var book = await GetById(bookId);
+        if (book is null)
+        {
+            _logger.LogInformation("There is no such Book with { @BookId }", bookId);
+        }
         foreach (var bookItem in book.BookItems)
         {
             if (bookItem.BookStatus == BookItemStatusEnumeration.Available)
@@ -230,5 +254,6 @@ public class BooksRepository : IBooksRepository
         {
             _logger.LogCritical(e.Message);
         }
+        
     }
 }

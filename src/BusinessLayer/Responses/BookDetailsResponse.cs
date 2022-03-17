@@ -16,8 +16,12 @@ namespace BusinessLayer.Responses
 
         public string CoverUrl { get; set; } = string.Empty;
 
+        public Guid?  BlobId  { get; set; }
+
         public Publisher? Publisher { get; set; }
 
         public List<Author>? Authors { get; set; }
+
+        public List<BookItem>? BookCopies { get; set; }
     }
 }

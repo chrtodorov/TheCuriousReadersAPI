@@ -73,6 +73,20 @@ namespace BusinessLayerTests.Users
         }
 
         [Test]
+        public async Task GetCount()
+        {
+            var number = 1;
+
+            _usersRepository.GetCount().Returns(number);
+
+            var received = await _usersService.GetCount();
+
+            await _usersRepository.Received(1).GetCount();
+
+            Assert.That(received, Is.Not.Null);
+        }
+
+        [Test]
         public async Task RefreshToken()
         {
             _usersRepository.GetUser(validCustomer.EmailAddress).Returns(validCustomer);
