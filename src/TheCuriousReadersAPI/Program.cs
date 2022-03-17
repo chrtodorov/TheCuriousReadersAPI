@@ -5,6 +5,7 @@ using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Interfaces.BookRequests;
 using BusinessLayer.Interfaces.Books;
+using BusinessLayer.Interfaces.Notifications;
 using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Interfaces.Users;
 using BusinessLayer.Services;
@@ -49,6 +50,8 @@ builder.Services.AddScoped<IBookRequestsService, BookRequestsService>();
 builder.Services.AddScoped<IBookRequestsRepository, BookRequestsRepository>();
 builder.Services.AddScoped<IBookLoansService, BookLoansService>();
 builder.Services.AddScoped<IBookLoansRepository, BookLoansRepository>();
+builder.Services.AddScoped<INotificationsService, NotificationService>();
+builder.Services.AddScoped<INotificationsRepository, NotificationsRepository>();
 
 builder.Services.AddScoped<IBlobRepository, BlobRepository>();
 builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetConnectionString("BlobConnectionString")));

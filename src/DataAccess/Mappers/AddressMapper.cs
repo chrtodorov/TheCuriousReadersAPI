@@ -18,5 +18,18 @@ namespace DataAccess.Mappers
                 AdditionalInfo = address.AdditionalInfo,
             };
         }
+        public static Address ToAddress(this AddressEntity addressEntity)
+        {
+            return new Address
+            {
+                Country = addressEntity.Country,
+                City = addressEntity.City,
+                Street = addressEntity.Street,
+                StreetNumber = addressEntity.StreetNumber,
+                BuildingNumber = addressEntity.BuildingNumber,
+                ApartmentNumber = addressEntity.ApartmentNumber,
+                AdditionalInfo = addressEntity.AdditionalInfo,
+            };
+        }
     }
 }

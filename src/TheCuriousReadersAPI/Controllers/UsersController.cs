@@ -152,6 +152,21 @@ namespace API.Controllers
             return Ok(pendingUsers.Select(u => u.ToUserResponse()));
         }
 
+        [HttpGet("get/{userId}")]
+        [Authorize(Policy = Policies.RequireCustomerRole)]
+        public async Task<IActionResult> GetUserById(Guid userId)
+        {
+            var user = await usersService.GetUserById(userId);
+            return Ok(user.ToUserResponse());
+        }
+
+        [HttpGet("get-librarian/{librarianId}")]
+        [Authorize(Policy = Policies.RequireLibrarianRole)]
+        public async Task<IActionResult> GetLibrarianById(Guid librarianId)
+        {
+            var librarian = await usersService.GetLibrarianById(librarianId);
+            return Ok(librarian.ToUserResponse());
+        }
         private CookieOptions GetRefreshTokenOptions()
         {
             return new CookieOptions

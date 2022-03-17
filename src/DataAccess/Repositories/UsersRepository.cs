@@ -228,6 +228,31 @@ namespace DataAccess
                 .ToListAsync();
         }
 
+        public async Task<User> GetUserById(Guid userId)
+        {
+            
+            var user = await _dbContext.Users
+                .Include(u => u.Customers)
+                .ThenInclude(u => u.Address)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            var customerEntity = await _dbContext.Customers
+                .Include(u => u.User)
+                .FirstOrDefaultAsync(c => c.User.UserId == userId);
+
+            return user.ToUserWithAddress(customerEntity.Address);
+        }
+
+        public async Task<User> GetLibrarianById(Guid librarianId)
+        {
+            var librarian = await _dbContext.Users
+                .Include(u => u.Librarians)
+                .FirstOrDefaultAsync(u => u.UserId == librarianId);
+
+            return librarian.ToUserLibrarian();
+        }
+
+
         public async Task<IEnumerable<User>> GetUsers(string filter)
         {
             return await _dbContext.Users

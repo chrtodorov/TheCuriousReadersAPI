@@ -1,4 +1,10 @@
 ﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace BusinessLayer.Responses
 {
@@ -11,5 +17,6 @@ namespace BusinessLayer.Responses
         public string PhoneNumber { get; set; } = null!;
         public string RoleName { get; set; } = null!;
         public AccountStatus Status { get; set; }
+        public Address Address { get; set; } = null!;
     }
 }
