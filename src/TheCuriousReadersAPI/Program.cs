@@ -52,6 +52,8 @@ builder.Services.AddScoped<IBookLoansService, BookLoansService>();
 builder.Services.AddScoped<IBookLoansRepository, BookLoansRepository>();
 builder.Services.AddScoped<INotificationsService, NotificationService>();
 builder.Services.AddScoped<INotificationsRepository, NotificationsRepository>();
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+builder.Services.AddScoped<IGenreService, GenreService>();
 
 builder.Services.AddScoped<IBlobRepository, BlobRepository>();
 builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetConnectionString("BlobConnectionString")));

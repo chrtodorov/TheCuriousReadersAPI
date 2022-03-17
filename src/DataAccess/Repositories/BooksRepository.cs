@@ -118,6 +118,15 @@ public class BooksRepository : IBooksRepository
     {
         var bookEntity = book.ToBookEntity();
 
+        if (!await _dataContext.Genres.AnyAsync(g => g.Name == bookEntity.Genre))
+        {
+            var genreEntity = new GenreEntity()
+            {
+                Name = bookEntity.Genre
+            };
+            _dataContext.Genres.Add(genreEntity);
+        }
+
         foreach (var author in bookEntity.Authors!)
         {
             _dataContext.Authors.Attach(author);

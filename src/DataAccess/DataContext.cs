@@ -21,6 +21,7 @@ public class DataContext : DbContext
     public DbSet<BookRequestEntity> BookRequests { get; set; } = null!;
     public DbSet<BookLoanEntity> BookLoans { get; set; } = null!;
     public DbSet<BlobMetadata> BlobsMetadata { get; set; } = null!;
+    public DbSet<GenreEntity> Genres { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
