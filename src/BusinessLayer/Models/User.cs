@@ -28,7 +28,7 @@ namespace BusinessLayer.Models
 
         [Required]
         [StringLength(65, MinimumLength = 10)]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,65}$")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{10,65}$")]
         public string Password { get; set; } = null!;
 
         [Required]
