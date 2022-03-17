@@ -19,8 +19,8 @@ namespace BusinessLayer.Services
         public PagedList<BookLoan> GetExpiring(PagingParameters pagingParameters)
             => bookLoansRepository.GetExpiring(pagingParameters);
 
-        public async Task<BookLoan> GetLoanById(Guid userId)
-            => await bookLoansRepository.GetLoanById(userId);
+        public async Task<PagedList<BookLoan>> GetLoansById(Guid userId, PagingParameters pagingParameters)
+            => await bookLoansRepository.GetLoansById(userId, pagingParameters);
 
         public async Task<BookLoan> LoanBook(BookLoan bookLoan)
             => await bookLoansRepository.LoanBook(bookLoan);

@@ -66,5 +66,24 @@ namespace API.Controllers
                 return BadRequest(ModelState);
             }
         }
+
+        [HttpPut("{bookRequestId}")]
+        public async Task<IActionResult> Reject(Guid bookRequestId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                await bookRequestsService.RejectRequest(bookRequestId);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("BookRequest", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
     }
 }

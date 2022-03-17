@@ -32,7 +32,7 @@ namespace DataAccess.Repositories
             return PagedList<BookLoan>.ToPagedList(booksQuery, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
-        public async Task<BookLoan> GetLoanById(Guid userId)
+        public async Task<PagedList<BookLoan>> GetLoansById(Guid userId, PagingParameters pagingParameters)
         {
             var userExists = await _dbContext.Users.AnyAsync(u => u.UserId == userId);
             if (!userExists)
@@ -40,12 +40,10 @@ namespace DataAccess.Repositories
                 throw new ArgumentException($"User with id: {userId} does not exist");
             }
 
-            var loan = await GetBookLoansQuery().FirstOrDefaultAsync(l => l.Customer.User.UserId == userId);
-            if (loan is null)
-            {
-                throw new ArgumentException($"User with id: {userId} has not loaned a book");
-            }
-            return loan.ToBookLoan();
+            var loansQuery = GetBookLoansQuery()
+                .Where(l => l.Customer.User.UserId == userId)
+                .Select(l => l.ToBookLoan());
+            return PagedList<BookLoan>.ToPagedList(loansQuery, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
         public async Task<BookLoan> LoanBook(BookLoan bookLoan)

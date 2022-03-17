@@ -31,5 +31,8 @@ namespace BusinessLayer.Services
             }
             return await bookRequestsRepository.MakeRequest(bookRequest);
         }
+
+        public async Task RejectRequest(Guid bookRequestId)
+            => await bookRequestsRepository.RejectRequest(bookRequestId);
     }
 }
