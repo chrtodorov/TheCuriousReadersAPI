@@ -154,6 +154,7 @@ namespace DataAccess
                     break;
 
                 case Roles.Librarian:
+                    userEntity.Status = AccountStatus.Approved;
                     await _dbContext.Librarians.AddAsync(user.ToLibrarianEntity(userEntity));
                     break;
 
