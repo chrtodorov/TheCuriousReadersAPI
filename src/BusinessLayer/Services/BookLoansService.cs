@@ -13,6 +13,9 @@ namespace BusinessLayer.Services
             this.bookLoansRepository = bookLoansRepository;
         }
 
+        public Task CompleteLoan(Guid bookLoanId)
+            => bookLoansRepository.CompleteLoan(bookLoanId);
+
         public PagedList<BookLoan> GetAll(PagingParameters pagingParameters) 
             => bookLoansRepository.GetAll(pagingParameters);
 

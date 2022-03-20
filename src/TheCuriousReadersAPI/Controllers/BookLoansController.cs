@@ -120,5 +120,25 @@ namespace API.Controllers
                 return BadRequest(ModelState);
             }
         }
+
+        [HttpPut("Complete/{bookLoanId}")]
+        [Authorize(Policy = Policies.RequireLibrarianRole)]
+        public async Task<IActionResult> CompleteLoan(Guid bookLoanId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                await bookLoansService.CompleteLoan(bookLoanId);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("BookLoan", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
     }
 }

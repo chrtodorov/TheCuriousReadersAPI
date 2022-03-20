@@ -140,8 +140,7 @@ public class DataContext : DbContext
             builder
                 .HasOne(re => re.BookItem)
                 .WithMany(i => i.BookRequests)
-                .HasForeignKey(re => re.BookItemId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .HasForeignKey(re => re.BookItemId);
         });
 
         modelBuilder.Entity<AuthorEntity>()

@@ -265,4 +265,19 @@ public class BooksRepository : IBooksRepository
         }
         
     }
+
+    public async Task<bool> HasLoanedItems(Guid bookId)
+    {
+        var book = await _dataContext.Books
+            .Include(b => b.BookItems)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(b => b.BookId == bookId);
+
+        if (book is null)
+        {
+            throw new ArgumentNullException(nameof(bookId), $"Book with id: {bookId} does not exist");
+        }
+        return book.BookItems!.Any(i => i.BookStatus == BookItemStatusEnumeration.Borrowed);
+    }
+
 }

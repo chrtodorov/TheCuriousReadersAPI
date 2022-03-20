@@ -17,6 +17,23 @@ namespace DataAccess.Repositories
             this._dbContext = dbContext;
         }
 
+        public async Task CompleteLoan(Guid bookLoanId)
+        {
+            var bookLoanEntity = await GetBookLoansQuery()
+                .Include(l => l.BookItem)
+                .FirstOrDefaultAsync(l => l.BookLoanId == bookLoanId);
+
+            if (bookLoanEntity is null)
+            {
+                throw new ArgumentException($"Book loan with id: {bookLoanId} does not exist");
+            }
+
+            bookLoanEntity.Status = BookLoanStatus.Completed;
+            bookLoanEntity.BookItem.BookStatus = BookItemStatusEnumeration.Available;
+            _dbContext.Update(bookLoanEntity);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public PagedList<BookLoan> GetAll(PagingParameters pagingParameters)
         {
             var booksQuery = GetBookLoansQuery().Select(l => l.ToBookLoan());
@@ -106,9 +123,12 @@ namespace DataAccess.Repositories
             return bookLoanEntity.ToBookLoan();
         }
 
+
+
         private IQueryable<BookLoanEntity> GetBookLoansQuery()
         {
             return _dbContext.BookLoans
+                .Where(l => l.Status == BookLoanStatus.Active)
                 .Include(l => l.Customer)
                     .ThenInclude(c => c.User)
                 .Include(l => l.BookItem)

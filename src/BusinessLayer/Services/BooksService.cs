@@ -66,7 +66,10 @@ public class BooksService : IBooksService
         var book = await Get(bookId);
         if(book is null)
             throw new ArgumentNullException(nameof(book), "Book cannot be found!");
-
+        if (await _bookRepository.HasLoanedItems(bookId))
+        {
+            throw new ArgumentException($"There are active book loans for book with id: {bookId}");
+        }
         var blobName = book.CoverUrl.Split('/').Last();
         await _bookRepository.Delete(bookId);
         await _blobService.DeleteAsync(blobName);

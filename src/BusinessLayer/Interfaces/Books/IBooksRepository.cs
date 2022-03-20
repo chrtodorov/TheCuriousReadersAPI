@@ -15,4 +15,5 @@ public interface IBooksRepository
     Task<bool> IsIsbnExisting(string isbn);
     Task<int> GetNumber();
     Task MakeUnavailable(Guid bookId);
+    Task<bool> HasLoanedItems(Guid bookId);
 }
