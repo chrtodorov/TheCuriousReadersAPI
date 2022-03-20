@@ -129,5 +129,19 @@ namespace DataAccess.Mappers
                 Status = customerEntity.User.Status
             };
         }
+
+        public static UserResponse ToCustomerUserResponse(this UserEntity userEntity)
+        {
+            return new UserResponse
+            {
+                UserId = userEntity.UserId,
+                FirstName = userEntity.FirstName,
+                LastName = userEntity.LastName,
+                EmailAddress = userEntity.EmailAddress,
+                PhoneNumber = userEntity.PhoneNumber,
+                RoleName = Roles.Customer,
+                Status = userEntity.Status
+            };
+        }
     }
 }

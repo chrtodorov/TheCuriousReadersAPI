@@ -21,6 +21,8 @@ public class DataContext : DbContext
     public DbSet<BookRequestEntity> BookRequests { get; set; } = null!;
     public DbSet<BookLoanEntity> BookLoans { get; set; } = null!;
     public DbSet<BlobMetadata> BlobsMetadata { get; set; } = null!;
+    public DbSet<CommentEntity> Comments { get; set; } = null!;
+    public DbSet<UserBooks> UserBooks{ get; set; } = null!;
     public DbSet<GenreEntity> Genres { get; set; } = null!;
 
 
@@ -143,20 +145,44 @@ public class DataContext : DbContext
                 .HasForeignKey(re => re.BookItemId);
         });
 
+        modelBuilder.Entity<CommentEntity>(builder =>
+        {
+            builder
+                .HasOne(c => c.Book)
+                .WithMany(b => b.Comments);
+
+            builder
+                .HasOne(c => c.User)
+                .WithMany(u => u.Comments);
+        });
+
+        modelBuilder.Entity<UserBooks>(builder =>
+        {
+            builder
+                .HasOne(ub => ub.User)
+                .WithMany(u => u.UserBooks)
+                .HasForeignKey(ub => ub.UserId);
+
+            builder
+                .HasOne(ub => ub.Book)
+                .WithMany(b => b.UserBooks)
+                .HasForeignKey(ub => ub.BookId);
+        });
+
         modelBuilder.Entity<AuthorEntity>()
             .HasIndex(a => a.Name).IsUnique();
 
         modelBuilder.Entity<PublisherEntity>()
             .HasIndex(p => p.Name).IsUnique();
-
-
     }
+
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         Save();
 
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
+
     public void Save()
     {
        var entries = ChangeTracker

@@ -39,6 +39,8 @@ public class BookEntity:AuditableEntity
     public ICollection<AuthorEntity>? Authors { get; set; }
 
     public ICollection<BookItemEntity>? BookItems { get; set; }
+    public ICollection<CommentEntity> Comments { get; set; } = new HashSet<CommentEntity>();
+    public ICollection<UserBooks> UserBooks { get; set; } = new HashSet<UserBooks>();
 
     public Guid? BlobMetadataId { get; set; }
     public BlobMetadata? BlobMetadata { get; set; }
