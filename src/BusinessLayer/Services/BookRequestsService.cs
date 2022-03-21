@@ -27,7 +27,7 @@ namespace BusinessLayer.Services
             var hasAvailableBookItems = await bookItemsRepository.HasAvailableItems(bookRequest.BookId);
             if (!hasAvailableBookItems)
             {
-                throw new ArgumentException($"There are no availbale copies of a book with id: {bookRequest.BookId}");
+                throw new ArgumentNullException($"There are no available copies of a book with id: {bookRequest.BookId}");
             }
             return await bookRequestsRepository.MakeRequest(bookRequest);
         }

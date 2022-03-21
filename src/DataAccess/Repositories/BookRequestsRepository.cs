@@ -45,7 +45,7 @@ namespace DataAccess.Repositories
             }
 
             var bookRequestsQuery = _dbContext.BookRequests
-                .Where(r => r.RequestedBy == customerId && r.Status != BookRequestStatus.Approved)
+                .Where(r => r.RequestedBy == customerId && r.Status == BookRequestStatus.Pending)
                 .Include(r => r.BookItem)
                     .ThenInclude(i => i.Book)
                         .ThenInclude(b => b.Authors)
@@ -77,7 +77,7 @@ namespace DataAccess.Repositories
 
             if (bookItem is null)
             {
-                throw new ArgumentException($"There are no availbale copies of a book with id: {bookRequest.BookId}");
+                throw new ArgumentNullException($"There are no availbale copies of a book with id: {bookRequest.BookId}");
             }
             var createdRequest = await _dbContext.BookRequests.AddAsync(bookRequest.ToBookRequestEntity(bookItem.BookItemId));
             bookItem.BookStatus = BookItemStatusEnumeration.Reserved;

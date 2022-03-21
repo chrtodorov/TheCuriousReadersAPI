@@ -60,6 +60,11 @@ namespace API.Controllers
                 var createdRequest = await bookRequestsService.MakeRequest(bookRequest.ToBookRequest(userSpecificId));
                 return Ok(createdRequest.ToLibrarianBookRequestResponse());
             }
+            catch (ArgumentNullException ex)
+            {
+                ModelState.AddModelError("Copies", ex.Message);
+                return BadRequest(ModelState);
+            }
             catch (ArgumentException ex)
             {
                 ModelState.AddModelError("BookItem", ex.Message);

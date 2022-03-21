@@ -179,7 +179,7 @@ public class BooksRepository : IBooksRepository
 
         var copiesToAdd = updatedBook.BookItems?.Where(c => bookToUpdate.BookItems!.All(d => c.Barcode != d.Barcode));
 
-        var copiesToRemove = updatedBook.BookItems?.Where(c => updatedBook.BookItems!.All(d => c.Barcode != d.Barcode));
+        var copiesToRemove = bookToUpdate.BookItems?.Where(c => updatedBook.BookItems!.All(d => c.Barcode != d.Barcode));
 
         foreach (var copy in copiesToAdd!)
         {
