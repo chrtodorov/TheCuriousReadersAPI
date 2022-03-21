@@ -31,10 +31,10 @@ namespace DataAccess.Repositories
                 throw new ArgumentException($"Book with id: {comment.BookId} does not exist");
             }
 
-            var userCommentedBook = await _dbContext.UserBooks.AnyAsync(ub => ub.UserId == comment.UserId && ub.BookId == comment.BookId);
-            if (!userCommentedBook)
+            var userReadBook = await _dbContext.UserBooks.AnyAsync(ub => ub.UserId == comment.UserId && ub.BookId == comment.BookId);
+            if (!userReadBook)
             {
-                throw new ArgumentException($"The current user has not commented on book with id: {comment.BookId}");
+                throw new ArgumentException($"The current user has not read book with id: {comment.BookId}");
             }
 
             var createdEntity = await _dbContext.Comments.AddAsync(comment.ToCommentEntity());
