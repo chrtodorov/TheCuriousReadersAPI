@@ -67,6 +67,7 @@ namespace DataAccess.Mappers
         {
             return new LibrarianBookRequestResponse
             {
+                BookRequestId = bookRequest.BookRequestId!.Value,
                 CreatedAt = bookRequest.CreatedAt,
                 Status = bookRequest.Status,
                 Book = bookRequest.Book,

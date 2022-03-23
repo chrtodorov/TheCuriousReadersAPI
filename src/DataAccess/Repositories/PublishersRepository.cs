@@ -52,9 +52,7 @@ public class PublishersRepository : IPublishersRepository
             }
             catch (DbUpdateException e)
             {
-                var sqlException = e.GetBaseException() as SqlException;
-
-                if (sqlException != null && sqlException.Number == 547)
+                if (e.GetBaseException() is SqlException {Number: 547})
                 {
                     throw new ArgumentException("Must delete all books from this publisher before deleting it.");
                 }

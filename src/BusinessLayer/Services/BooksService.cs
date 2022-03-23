@@ -1,4 +1,5 @@
 ﻿using BusinessLayer.Enumerations;
+using BusinessLayer.Interfaces;
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
@@ -10,11 +11,12 @@ public class BooksService : IBooksService
 {
     private readonly IBooksRepository _bookRepository;
     private readonly IBookItemsRepository _bookItemsRepository;
-
-    public BooksService(IBooksRepository bookRepository, IBookItemsRepository bookItemsRepository)
+    private readonly IBlobService _blobService;
+    public BooksService(IBooksRepository bookRepository, IBookItemsRepository bookItemsRepository, IBlobService blobService)
     {
         this._bookRepository = bookRepository;
         this._bookItemsRepository = bookItemsRepository;
+        _blobService = blobService;
     }
 
     public async Task<BookDetailsResponse?> Get(Guid bookId) => await _bookRepository.Get(bookId);
@@ -47,7 +49,7 @@ public class BooksService : IBooksService
     {
         if (!await _bookRepository.Contains(bookId))
         {
-            throw new ArgumentException("Book cannot be found!");
+            throw new ArgumentNullException(nameof(book), "Book cannot be found!");
         }
 
         var bookFromDb = await _bookRepository.Get(bookId);
@@ -61,14 +63,25 @@ public class BooksService : IBooksService
 
     public async Task Delete(Guid bookId)
     {
-        if (!await _bookRepository.Contains(bookId))
+        var book = await Get(bookId);
+        if(book is null)
+            throw new ArgumentNullException(nameof(book), "Book cannot be found!");
+        if (await _bookRepository.HasLoanedItems(bookId))
         {
-            throw new ArgumentException("Book cannot be found!");
+            throw new ArgumentException($"There are active book loans for book with id: {bookId}");
         }
+        var blobName = book.CoverUrl.Split('/').Last();
         await _bookRepository.Delete(bookId);
+        await _blobService.DeleteAsync(blobName);
     }
 
-    public async Task MakeUnavailable(Guid bookId) => await _bookRepository.MakeUnavailable(bookId);
+    public async Task MakeUnavailable(Guid bookId) 
+    {
+        var book = await Get(bookId);
+        if(book is null)
+            throw new ArgumentException("Book cannot be found!");
+        await _bookRepository.MakeUnavailable(bookId); 
+    }
 
     public async Task<bool> Contains(Guid bookId) => await _bookRepository.Contains(bookId);
     public async Task<bool> IsIsbnExisting(string isbn) => await _bookRepository.IsIsbnExisting(isbn);

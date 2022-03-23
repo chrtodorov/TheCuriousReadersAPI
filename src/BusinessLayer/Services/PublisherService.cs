@@ -28,7 +28,7 @@ public class PublisherService : IPublishersService
     {
         if (!await _publisherRepository.Contains(publisherId))
         {
-            throw new ArgumentException("Publisher cannot be found!");
+            throw new ArgumentNullException(nameof(publisherId), "Publisher cannot be found!");
         }
         await _publisherRepository.Delete(publisherId);
     } 
@@ -41,7 +41,7 @@ public class PublisherService : IPublishersService
     {
         if (!await _publisherRepository.Contains(publisherId))
         {
-            throw new ArgumentException("Publisher cannot be found!");
+            throw new ArgumentNullException(nameof(publisherId), "Publisher cannot be found!");
         }
         if (await _publisherRepository.IsPublisherNameExisting(publisher.Name))
         {

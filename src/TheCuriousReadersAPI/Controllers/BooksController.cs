@@ -100,10 +100,15 @@ namespace API.Controllers
             {
                 return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
             }
+            catch (ArgumentNullException e)
+            {
+                return NotFound(e.Message);
+            }
             catch (ArgumentException e)
             {
                 return BadRequest(e.Message);
             }
+            
         }
 
         [HttpDelete("{bookId}")]
@@ -120,10 +125,15 @@ namespace API.Controllers
                 await _booksService.Delete(bookId);
                 return Ok();
             }
-            catch (ArgumentException e)
+            catch (ArgumentNullException e)
             {
                 return NotFound(e.Message);
             }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            
         }
         [AllowAnonymous]
         [HttpGet("count")]
@@ -133,7 +143,7 @@ namespace API.Controllers
             return Ok(numberOfBooks);
         }
 
-        [HttpPut("status/{bookId}")]
+        [HttpPut("{bookId}/status")]
         public async Task<IActionResult> MakeUnavailable(Guid bookId)
         {
             try

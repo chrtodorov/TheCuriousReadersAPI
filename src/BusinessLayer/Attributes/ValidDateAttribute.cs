@@ -8,8 +8,8 @@ namespace BusinessLayer.Attributes
         public override bool IsValid(object? value)
         {
             DateTime dateValue = Convert.ToDateTime(value);
-            return dateValue >= DateTime.UtcNow;
+            var now = DateTime.UtcNow;
+            return dateValue >= new DateTime(now.Year, now.Month, now.Day);
         }
     }
-    
 }

@@ -27,7 +27,7 @@ public static class PublisherMapper
     {
         return new Publisher
         {
-            Name = publisherCreateRequest.Name
+            Name = publisherCreateRequest.Name.Trim()
         };
     }
 }

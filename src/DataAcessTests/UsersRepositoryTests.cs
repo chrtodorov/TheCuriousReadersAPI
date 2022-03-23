@@ -126,7 +126,7 @@ namespace DataAccessTests
         [Test]
         public async Task GetUser_Fails_NotApproved()
         {
-            await _usersRepository.Register(validLibrarian);
+            await _usersRepository.Register(validCustomer);
             Assert.ThrowsAsync<ArgumentException>(async delegate 
             { 
                 await _usersRepository.GetUser(validLibrarian.EmailAddress, validLibrarian.Password); 

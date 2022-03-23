@@ -20,6 +20,10 @@ public class DataContext : DbContext
     public DbSet<RoleEntity> Roles { get; set; } = null!;
     public DbSet<BookRequestEntity> BookRequests { get; set; } = null!;
     public DbSet<BookLoanEntity> BookLoans { get; set; } = null!;
+    public DbSet<BlobMetadata> BlobsMetadata { get; set; } = null!;
+    public DbSet<CommentEntity> Comments { get; set; } = null!;
+    public DbSet<UserBooks> UserBooks{ get; set; } = null!;
+    public DbSet<GenreEntity> Genres { get; set; } = null!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,6 +57,11 @@ public class DataContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
             builder
                 .HasIndex(b => b.Isbn).IsUnique();
+            builder
+                .HasOne(b => b.BlobMetadata)
+                .WithOne(b => b.BookEntity)
+                .HasForeignKey<BookEntity>(b => b.BlobMetadataId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<BookItemEntity>(builder =>
@@ -133,8 +142,31 @@ public class DataContext : DbContext
             builder
                 .HasOne(re => re.BookItem)
                 .WithMany(i => i.BookRequests)
-                .HasForeignKey(re => re.BookItemId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .HasForeignKey(re => re.BookItemId);
+        });
+
+        modelBuilder.Entity<CommentEntity>(builder =>
+        {
+            builder
+                .HasOne(c => c.Book)
+                .WithMany(b => b.Comments);
+
+            builder
+                .HasOne(c => c.User)
+                .WithMany(u => u.Comments);
+        });
+
+        modelBuilder.Entity<UserBooks>(builder =>
+        {
+            builder
+                .HasOne(ub => ub.User)
+                .WithMany(u => u.UserBooks)
+                .HasForeignKey(ub => ub.UserId);
+
+            builder
+                .HasOne(ub => ub.Book)
+                .WithMany(b => b.UserBooks)
+                .HasForeignKey(ub => ub.BookId);
         });
 
         modelBuilder.Entity<AuthorEntity>()
@@ -142,15 +174,15 @@ public class DataContext : DbContext
 
         modelBuilder.Entity<PublisherEntity>()
             .HasIndex(p => p.Name).IsUnique();
-
-
     }
+
     public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         Save();
 
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
+
     public void Save()
     {
        var entries = ChangeTracker

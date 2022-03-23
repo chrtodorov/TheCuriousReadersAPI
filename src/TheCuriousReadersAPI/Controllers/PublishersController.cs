@@ -79,6 +79,10 @@ namespace API.Controllers
             {
                 return Ok(await _publishersService.Update(publisherId, publisherRequest.ToPublisher()));
             }
+            catch (ArgumentNullException e)
+            {
+                return NotFound(e.Message);
+            }
             catch (ArgumentException e)
             {
                 return BadRequest(e.Message);
@@ -94,6 +98,10 @@ namespace API.Controllers
             {
                 await _publishersService.Delete(publisherId);
                 return Ok();
+            }
+            catch (ArgumentNullException e)
+            {
+                return NotFound(e.Message);
             }
             catch (ArgumentException e)
             {

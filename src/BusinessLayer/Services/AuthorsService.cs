@@ -28,7 +28,7 @@ public class AuthorsService : IAuthorsService
     {
         if (!await _authorsRepository.Contains(authorId))
         {
-            throw new ArgumentException("Author cannot be found!");
+            throw new ArgumentNullException(nameof(author), "Author cannot be found!");
         }
 
         var authorFromDb = await _authorsRepository.Get(authorId);
@@ -44,7 +44,7 @@ public class AuthorsService : IAuthorsService
     {
         if (!await _authorsRepository.Contains(authorId))
         {
-            throw new ArgumentException("Author cannot be found!");
+            throw new ArgumentNullException(nameof(authorId), "Author cannot be found!");
         }
         await _authorsRepository.Delete(authorId);
     }

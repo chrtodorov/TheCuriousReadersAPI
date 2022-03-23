@@ -4,6 +4,7 @@ using BusinessLayer.Models;
 using BusinessLayer.Responses;
 using DataAccess.Entities;
 using DataAccess.Mappers;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -27,6 +28,7 @@ public class BooksRepository : IBooksRepository
         var bookEntity = await _dataContext.Books
             .Include(b => b.Authors)
             .Include(b => b.Publisher)
+            .Include(b => b.BookItems)
             .Where(b => b.BookId == bookId)
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -36,13 +38,14 @@ public class BooksRepository : IBooksRepository
 
     public async Task<BookEntity?> GetById(Guid bookId, bool tracking = true)
     {
-        var query = _dataContext.Books
+        var book = _dataContext.Books
             .Include(b => b.Authors)
+            .Include(b => b.BookItems)
             .Where(b => b.BookId == bookId);
         if (!tracking)
-            query.AsNoTracking();
+            book.AsNoTracking();
 
-        return await query.FirstOrDefaultAsync();
+        return await book.FirstOrDefaultAsync();
     }
 
     public async Task<List<Book>> GetLatest()
@@ -56,6 +59,10 @@ public class BooksRepository : IBooksRepository
            .ToListAsync();
 
         _logger.LogInformation("Get latest books");
+        if(bookList.Count == 0)
+        {
+            _logger.LogInformation("No books to show");
+        }
 
         return bookList;
     }
@@ -70,36 +77,37 @@ public class BooksRepository : IBooksRepository
     public async Task<PagedList<Book>> GetBooks(BookParameters bookParameters)
     {
         var query = _dataContext.Books.Include(b => b.Authors).AsNoTracking();
+        var result = Enumerable.Empty<BookEntity>();
 
         if (!string.IsNullOrEmpty(bookParameters.Title))
         {
-            query = query.Where(b => b.Title.Contains(bookParameters.Title));
+            result = result.Union(query.Where(b => b.Title.Contains(bookParameters.Title)));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.Author))
         {
             var author = await _dataContext.Authors.FirstOrDefaultAsync(a => a.Name == bookParameters.Author);
-            query = query.Where(b => b.Authors!.Contains(author!));
+            result = result.Union(query.Where(b => b.Authors!.Contains(author!)));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.Publisher))
         {
-            query = query.Where(b => b.Publisher!.Name == bookParameters.Publisher);
+            result = result.Union(query.Where(b => b.Publisher!.Name == bookParameters.Publisher));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.DescriptionKeyword))
         {
-            query = query.Where(b => b.Description.Contains(bookParameters.DescriptionKeyword));
+            result = result.Union(query.Where(b => b.Description.Contains(bookParameters.DescriptionKeyword)));
         }
 
         if (!string.IsNullOrEmpty(bookParameters.Genre))
         {
-            query = query.Where(b => b.Genre == bookParameters.Genre);
+            result = result.Union(query.Where(b => b.Genre == bookParameters.Genre));
         }
-
+        result = result.Count() == 0 ? query : result;
         _logger.LogInformation("Get all books");
 
-        return PagedList<Book>.ToPagedList(query
+        return PagedList<Book>.ToPagedList(result.AsQueryable()
             .OrderBy(b => b.Title)
             .Select(b => b.ToBook()),
             bookParameters.PageNumber,
@@ -109,6 +117,15 @@ public class BooksRepository : IBooksRepository
     public async Task<Book> Create(Book book)
     {
         var bookEntity = book.ToBookEntity();
+
+        if (!await _dataContext.Genres.AnyAsync(g => g.Name == bookEntity.Genre))
+        {
+            var genreEntity = new GenreEntity()
+            {
+                Name = bookEntity.Genre
+            };
+            _dataContext.Genres.Add(genreEntity);
+        }
 
         foreach (var author in bookEntity.Authors!)
         {
@@ -122,7 +139,7 @@ public class BooksRepository : IBooksRepository
         }
         catch (DbUpdateException e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogCritical(e.Message);
         }
 
         _logger.LogInformation("Create Book with {@BookId}", bookEntity.BookId);
@@ -160,6 +177,20 @@ public class BooksRepository : IBooksRepository
             bookToUpdate.Authors?.Remove(author);
         }
 
+        var copiesToAdd = updatedBook.BookItems?.Where(c => bookToUpdate.BookItems!.All(d => c.Barcode != d.Barcode));
+
+        var copiesToRemove = bookToUpdate.BookItems?.Where(c => updatedBook.BookItems!.All(d => c.Barcode != d.Barcode));
+
+        foreach (var copy in copiesToAdd!)
+        {
+            bookToUpdate.BookItems?.Add(copy);
+            _dataContext.BookItems.Attach(copy);
+        }
+        foreach(var copy in copiesToRemove!)
+        {
+            bookToUpdate.BookItems?.Remove(copy);
+        }
+
         _logger.LogInformation("Update Book with {@BookId}", bookToUpdate.BookId);
 
         try
@@ -168,7 +199,7 @@ public class BooksRepository : IBooksRepository
         }
         catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogCritical(e.Message);
         }
         
         return bookToUpdate.ToBook();
@@ -188,7 +219,10 @@ public class BooksRepository : IBooksRepository
             }
             catch (DbUpdateException e)
             {
-                _logger.LogCritical(e.ToString());
+                if (e.GetBaseException() is SqlException {Number: 547})
+                {
+                    throw new ArgumentException("All book requests and loans must be completed before deleting this book!");
+                }
             }
 
             _logger.LogInformation("Deleting Book with {@BookId}", bookId);
@@ -210,6 +244,10 @@ public class BooksRepository : IBooksRepository
     public async Task MakeUnavailable(Guid bookId)
     {
         var book = await GetById(bookId);
+        if (book is null)
+        {
+            _logger.LogInformation("There is no such Book with { @BookId }", bookId);
+        }
         foreach (var bookItem in book.BookItems)
         {
             if (bookItem.BookStatus == BookItemStatusEnumeration.Available)
@@ -223,8 +261,23 @@ public class BooksRepository : IBooksRepository
         }
         catch (DbUpdateException e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogCritical(e.Message);
         }
+        
+    }
+
+    public async Task<bool> HasLoanedItems(Guid bookId)
+    {
+        var book = await _dataContext.Books
+            .Include(b => b.BookItems)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(b => b.BookId == bookId);
+
+        if (book is null)
+        {
+            throw new ArgumentNullException(nameof(bookId), $"Book with id: {bookId} does not exist");
+        }
+        return book.BookItems!.Any(i => i.BookStatus == BookItemStatusEnumeration.Borrowed);
     }
 
 }

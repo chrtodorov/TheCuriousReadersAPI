@@ -114,11 +114,9 @@ public class AuthorsRepository : IAuthorsRepository
             }
             catch (DbUpdateException e)
             {
-                var sqlException = e.GetBaseException() as SqlException;
-
-                if(sqlException != null && sqlException.Number == 547)
+                if(e.GetBaseException() is SqlException {Number: 547})
                 {
-                    throw new ArgumentException("Must delete all books from this auhtor before deleting it.");
+                    throw new ArgumentException("Must delete all books from this author before deleting it.");
                 }
             }          
         }

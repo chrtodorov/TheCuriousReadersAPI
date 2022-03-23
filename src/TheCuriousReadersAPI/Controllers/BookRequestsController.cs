@@ -60,9 +60,33 @@ namespace API.Controllers
                 var createdRequest = await bookRequestsService.MakeRequest(bookRequest.ToBookRequest(userSpecificId));
                 return Ok(createdRequest.ToLibrarianBookRequestResponse());
             }
+            catch (ArgumentNullException ex)
+            {
+                ModelState.AddModelError("Copies", ex.Message);
+                return BadRequest(ModelState);
+            }
             catch (ArgumentException ex)
             {
                 ModelState.AddModelError("BookItem", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpPut("{bookRequestId}")]
+        public async Task<IActionResult> Reject(Guid bookRequestId)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                await bookRequestsService.RejectRequest(bookRequestId);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                ModelState.AddModelError("BookRequest", ex.Message);
                 return BadRequest(ModelState);
             }
         }

@@ -76,8 +76,15 @@ namespace BusinessLayer
 
         public async Task<IEnumerable<User>> GetPendingCustomers() =>
             await usersRepository.GetPendingCustomers();
+        public async Task<User> GetUserById(Guid userId) =>
+            await usersRepository.GetUserById(userId);
+        public async Task<User> GetLibrarianById(Guid librarianId) =>
+            await usersRepository.GetLibrarianById(librarianId);
 
-        public async Task<int> GetCount()=>
+        public async Task<int> GetCount() =>
             await usersRepository.GetCount();
+
+        public async Task<IEnumerable<User>> GetUsers(string filter) => 
+            await usersRepository.GetUsers(filter);
     }
 }

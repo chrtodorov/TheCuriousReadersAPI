@@ -12,13 +12,14 @@ public static class BookMapper
         return new Book
         {
             BookId = bookEntity.BookId,
-            Isbn = bookEntity.Isbn.Trim(),
+            Isbn = bookEntity.Isbn,
             CreatedAt = bookEntity.CreatedAt,
             Title = bookEntity.Title,
             Description = bookEntity.Description,
             Genre = bookEntity.Genre,
             CoverUrl = bookEntity.CoverUrl,
             PublisherId = bookEntity.PublisherId,
+            BlobId = bookEntity.BlobMetadataId,
             AuthorsIds = bookEntity.Authors?.Select(a => a.AuthorId).ToList(),
             BookItems = bookEntity.BookItems?.Select(a => a.ToBookItem()).ToList()
         };
@@ -29,7 +30,7 @@ public static class BookMapper
         return new Book
         {
             BookId = bookEntity.BookId,
-            Isbn = bookEntity.Isbn.Trim(),
+            Isbn = bookEntity.Isbn,
             Title = bookEntity.Title,
             Description = bookEntity.Description,
             Genre = bookEntity.Genre,
@@ -43,12 +44,13 @@ public static class BookMapper
     {
         return new BookEntity
         {
-            Isbn = book.Isbn.Trim(),
+            Isbn = book.Isbn,
             Title = book.Title,
             Description = book.Description,
             Genre = book.Genre,
             CoverUrl = book.CoverUrl,
             PublisherId = book.PublisherId,
+            BlobMetadataId = book.BlobId,
             Authors = book.AuthorsIds?.Select(a => new AuthorEntity(){ AuthorId = a}).ToList(),
             BookItems = book.BookItems?.Select(a => a.ToBookItemEntity()).ToList()
         };
@@ -59,11 +61,12 @@ public static class BookMapper
         return new Book
         {
             Isbn = bookRequest.Isbn.Trim(),
-            Title = bookRequest.Title,
-            Description = bookRequest.Description,
-            Genre = bookRequest.Genre,
+            Title = bookRequest.Title.Trim(),
+            Description = bookRequest.Description.Trim(),
+            Genre = bookRequest.Genre.Trim(),
             CoverUrl = bookRequest.CoverUrl,
             PublisherId = bookRequest.PublisherId,
+            BlobId = bookRequest.BlobId,
             AuthorsIds = bookRequest.AuthorsIds,
             BookItems = bookRequest.BookCopies?.Select(a => a.ToBookItem()).ToList()
         };
@@ -79,8 +82,10 @@ public static class BookMapper
             Description = bookEntity.Description,
             Genre = bookEntity.Genre,
             CoverUrl = bookEntity.CoverUrl,
+            BlobId = bookEntity.BlobMetadataId,
             Publisher = bookEntity.Publisher?.ToPublisher(),
-            Authors = bookEntity.Authors?.Select(a => a.ToAuthor()).ToList()
+            Authors = bookEntity.Authors?.Select(a => a.ToAuthor()).ToList(),
+            BookCopies = bookEntity.BookItems?.Select(a => a.ToBookItem()).ToList()
         };
     }
 }

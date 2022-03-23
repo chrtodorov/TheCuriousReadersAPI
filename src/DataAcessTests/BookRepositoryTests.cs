@@ -34,6 +34,16 @@ public class BookRepositoryTests
         {
             Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd105"),
             Guid.Parse("3b75f22e-6721-482b-a91f-f6c473d330e2")
+        },
+        BookItems = new List<BookItem>
+        {
+            new BookItem()
+            {
+                BookItemId = Guid.Parse("53e4a024-2042-41cd-a04a-7772a38fd405"),
+                Barcode = "9765548372",
+                BookStatus = 0,
+                
+            }
         }
     };
 
@@ -50,6 +60,39 @@ public class BookRepositoryTests
         {
             new AuthorEntity(){AuthorId = Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd105"), Name = "J. K. Rowling"},
             new AuthorEntity(){AuthorId = Guid.Parse("3b75f22e-6721-482b-a91f-f6c473d330e2"), Name = "JK Rowling"}
+        },
+        BookItems = new List<BookItemEntity>
+        {
+            new BookItemEntity(){
+                BookItemId = Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd195"), 
+                Barcode = "9245185300", 
+                BookStatus = 0,
+                
+            }
+        }
+    };
+    private readonly BookEntity _bookDataEntity1 = new()
+    {
+        BookId = Guid.Parse("9fc0ae59-15cb-4b19-9916-4c431483fab5"),
+        Isbn = "1234567891",
+        Title = "Harry",
+        Description = "Harry Potter Book",
+        Genre = "Fantasy",
+        CoverUrl = "http://coverurl",
+        Publisher = new PublisherEntity() { PublisherId = Guid.Parse("399b3630-f62a-478b-651b-11d2367136d2"), Name = "Bloomsbur Publishing" },
+        Authors = new List<AuthorEntity>
+        {
+            new AuthorEntity(){AuthorId = Guid.Parse("53e45024-2062-41cd-a04a-7772a38fd104"), Name = "J. K. Rowling"},
+            new AuthorEntity(){AuthorId = Guid.Parse("3b75f22e-6721-482b-a21f-f6c473d330e2"), Name = "JK Rowling"}
+        },
+        BookItems = new List<BookItemEntity>
+        {
+            new BookItemEntity(){
+                BookItemId = Guid.Parse("53e45124-2062-41cd-a04a-7772a38fd195"),
+                Barcode = "9245185300",
+                BookStatus = 0,
+
+            }
         }
     };
 
@@ -262,6 +305,31 @@ public class BookRepositoryTests
     }
 
     [Test]
+    public async Task GetLatestAsync()
+    {
+        _context.Books.Add(_bookDataEntity);
+        _context.Books.Add(_bookDataEntity1);
+        await _context.SaveChangesAsync();
+
+        var booksToReceive = await _booksRepository.GetLatest();
+
+        var books = _context.Books.FirstOrDefault()!.ToBook();
+
+        Assert.IsNotNull(booksToReceive);
+        Assert.That(books.Isbn, Is.EqualTo(booksToReceive[1].Isbn));
+        Assert.That(books.Title, Is.EqualTo(booksToReceive[1].Title));
+        Assert.That(books.Description, Is.EqualTo(booksToReceive[1].Description));
+        Assert.That(books.PublisherId, Is.EqualTo(booksToReceive[1].PublisherId));
+        Assert.That(books.BookId, Is.EqualTo(booksToReceive[1].BookId));
+        Assert.That(books.Genre, Is.EqualTo(booksToReceive[1].Genre));
+
+        CollectionAssert.AreEqual(books.AuthorsIds, booksToReceive[1].AuthorsIds);
+
+        Assert.That(booksToReceive[0].CreatedAt, Is.GreaterThan(booksToReceive[1].CreatedAt));
+
+    }
+
+    [Test]
     public async Task CreateAsync()
     {
         var resultCreateBook = await _booksRepository.Create(_bookData);
@@ -356,5 +424,34 @@ public class BookRepositoryTests
         var result = await _booksRepository.IsIsbnExisting(testBookEntity!.Isbn);
 
         Assert.IsTrue(result);
+    }
+
+    [Test]
+    public async Task MakeUnavailableAsync()
+    {
+        _context.Books.Add(_bookDataEntity);
+        await _context.SaveChangesAsync();
+
+        var bookToChange = _context.Books.FirstOrDefault();
+        var copyToChange = bookToChange.BookItems.FirstOrDefault();
+
+        await _booksRepository.MakeUnavailable(bookToChange!.BookId);
+
+        var copyChanged = bookToChange.BookItems.FirstOrDefault();
+
+        Assert.That(copyChanged.BookStatus.ToString(), Is.EqualTo("NotAvailable"));
+    }
+
+
+    [Test]
+    public async Task GetNumber()
+    {
+        _context.Books.Add(_bookDataEntity);
+        await _context.SaveChangesAsync();
+
+        var number = await _booksRepository.GetNumber();
+        var defNumber = _context.Books.Count();
+
+        Assert.That(defNumber, Is.EqualTo(number));
     }
 }

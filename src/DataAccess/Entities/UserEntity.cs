@@ -41,5 +41,7 @@ namespace DataAccess.Entities
         public ICollection<CustomerEntity> Customers { get; set; } = null!;
         public ICollection<LibrarianEntity> Librarians { get; set; } = null!;
         public ICollection<AdministratorEntity> Administrators { get; set; } = null!;
+        public ICollection<CommentEntity> Comments { get; set; } = null!;
+        public ICollection<UserBooks> UserBooks { get; set; } = new HashSet<UserBooks>();
     }
 }
