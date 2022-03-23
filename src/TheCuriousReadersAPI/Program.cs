@@ -6,6 +6,7 @@ using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Interfaces.BookRequests;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Interfaces.Notifications;
+using BusinessLayer.Interfaces.Email;
 using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Interfaces.Users;
 using BusinessLayer.Services;
@@ -61,6 +62,7 @@ builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
 builder.Services.AddScoped<IBlobRepository, BlobRepository>();
 builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetConnectionString("BlobConnectionString")));
 builder.Services.AddScoped<IBlobService, BlobService>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 builder.Services.AddControllers();
 
