@@ -5,6 +5,7 @@ using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Interfaces.BookRequests;
 using BusinessLayer.Interfaces.Books;
+using BusinessLayer.Interfaces.Email;
 using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Interfaces.Users;
 using BusinessLayer.Services;
@@ -47,6 +48,7 @@ builder.Services.AddScoped<IBookRequestsService, BookRequestsService>();
 builder.Services.AddScoped<IBookRequestsRepository, BookRequestsRepository>();
 builder.Services.AddScoped<IBookLoansService, BookLoansService>();
 builder.Services.AddScoped<IBookLoansRepository, BookLoansRepository>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 builder.Services.AddControllers();
 
