@@ -1,6 +1,7 @@
 ﻿using BusinessLayer.Enumerations;
 using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Models;
+using BusinessLayer.Requests;
 using DataAccess.Entities;
 using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,23 @@ namespace DataAccess.Repositories
         public BookLoansRepository(DataContext dbContext)
         {
             this._dbContext = dbContext;
+        }
+
+        public async Task CompleteLoan(Guid bookLoanId)
+        {
+            var bookLoanEntity = await GetBookLoansQuery()
+                .Include(l => l.BookItem)
+                .FirstOrDefaultAsync(l => l.BookLoanId == bookLoanId);
+
+            if (bookLoanEntity is null)
+            {
+                throw new ArgumentException($"Book loan with id: {bookLoanId} does not exist");
+            }
+
+            bookLoanEntity.Status = BookLoanStatus.Completed;
+            bookLoanEntity.BookItem.BookStatus = BookItemStatusEnumeration.Available;
+            _dbContext.Update(bookLoanEntity);
+            await _dbContext.SaveChangesAsync();
         }
 
         public PagedList<BookLoan> GetAll(PagingParameters pagingParameters)
@@ -31,7 +49,7 @@ namespace DataAccess.Repositories
             return PagedList<BookLoan>.ToPagedList(booksQuery, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
-        public async Task<BookLoan> GetLoanById(Guid userId)
+        public async Task<PagedList<BookLoan>> GetLoansById(Guid userId, PagingParameters pagingParameters)
         {
             var userExists = await _dbContext.Users.AnyAsync(u => u.UserId == userId);
             if (!userExists)
@@ -39,12 +57,10 @@ namespace DataAccess.Repositories
                 throw new ArgumentException($"User with id: {userId} does not exist");
             }
 
-            var loan = await GetBookLoansQuery().FirstOrDefaultAsync(l => l.Customer.User.UserId == userId);
-            if (loan is null)
-            {
-                throw new ArgumentException($"User with id: {userId} has not loaned a book");
-            }
-            return loan.ToBookLoan();
+            var loansQuery = GetBookLoansQuery()
+                .Where(l => l.Customer.User.UserId == userId)
+                .Select(l => l.ToBookLoan());
+            return PagedList<BookLoan>.ToPagedList(loansQuery, pagingParameters.PageNumber, pagingParameters.PageSize);
         }
 
         public async Task<BookLoan> LoanBook(BookLoan bookLoan)
@@ -84,9 +100,35 @@ namespace DataAccess.Repositories
             return fullCreatedEntity.ToBookLoan();
         }
 
+        public async Task<BookLoan> ProlongLoan(Guid bookLoanId, ProlongRequest prolongRequest)
+        {
+            var bookLoanEntity = await GetBookLoansQuery()
+                .FirstOrDefaultAsync(l => l.BookLoanId == bookLoanId);
+
+            if (bookLoanEntity is null)
+            {
+                throw new ArgumentException($"Book loan with id: {bookLoanId} does not exist");
+            }
+
+            if (bookLoanEntity.To >= prolongRequest.ExtendedTo)
+            {
+                throw new ArgumentException("Requested end time is before the actual loan end time");
+            }
+
+            bookLoanEntity.To = prolongRequest.ExtendedTo;
+            bookLoanEntity.TimesExtended++;
+            _dbContext.Update(bookLoanEntity);
+            await _dbContext.SaveChangesAsync();
+
+            return bookLoanEntity.ToBookLoan();
+        }
+
+
+
         private IQueryable<BookLoanEntity> GetBookLoansQuery()
         {
             return _dbContext.BookLoans
+                .Where(l => l.Status == BookLoanStatus.Active)
                 .Include(l => l.Customer)
                     .ThenInclude(c => c.User)
                 .Include(l => l.BookItem)

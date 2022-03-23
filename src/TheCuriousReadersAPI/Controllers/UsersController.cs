@@ -152,6 +152,21 @@ namespace API.Controllers
             return Ok(pendingUsers.Select(u => u.ToUserResponse()));
         }
 
+        [HttpGet("get/{userId}")]
+        [Authorize(Policy = Policies.RequireCustomerRole)]
+        public async Task<IActionResult> GetUserById(Guid userId)
+        {
+            var user = await usersService.GetUserById(userId);
+            return Ok(user.ToUserResponse());
+        }
+
+        [HttpGet("get-librarian/{librarianId}")]
+        [Authorize(Policy = Policies.RequireLibrarianRole)]
+        public async Task<IActionResult> GetLibrarianById(Guid librarianId)
+        {
+            var librarian = await usersService.GetLibrarianById(librarianId);
+            return Ok(librarian.ToUserResponse());
+        }
         private CookieOptions GetRefreshTokenOptions()
         {
             return new CookieOptions
@@ -167,5 +182,14 @@ namespace API.Controllers
             var numberOfUsers = await usersService.GetCount();
             return Ok(numberOfUsers);
         }
+
+        [HttpGet]
+        [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
+        public async Task<IActionResult> GetAllUsers([FromQuery] string filter)
+        {
+            var users = await usersService.GetUsers(filter);
+            return Ok(users.Select(u => u.ToUserResponse()));
+        }
     }
+
 }

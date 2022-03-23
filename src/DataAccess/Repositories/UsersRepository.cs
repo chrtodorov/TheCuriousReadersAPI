@@ -154,6 +154,7 @@ namespace DataAccess
                     break;
 
                 case Roles.Librarian:
+                    userEntity.Status = AccountStatus.Approved;
                     await _dbContext.Librarians.AddAsync(user.ToLibrarianEntity(userEntity));
                     break;
 
@@ -225,6 +226,40 @@ namespace DataAccess
                 .Where(u => u.Status == AccountStatus.Pending && u.Role.Name == Roles.Customer)
                 .Select(u => u.ToUser())
                 .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<User> GetUserById(Guid userId)
+        {
+            
+            var user = await _dbContext.Users
+                .Include(u => u.Customers)
+                .ThenInclude(u => u.Address)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            var customerEntity = await _dbContext.Customers
+                .Include(u => u.User)
+                .FirstOrDefaultAsync(c => c.User.UserId == userId);
+
+            return user.ToUserWithAddress(customerEntity.Address);
+        }
+
+        public async Task<User> GetLibrarianById(Guid librarianId)
+        {
+            var librarian = await _dbContext.Users
+                .Include(u => u.Librarians)
+                .FirstOrDefaultAsync(u => u.UserId == librarianId);
+
+            return librarian.ToUserLibrarian();
+        }
+
+
+        public async Task<IEnumerable<User>> GetUsers(string filter)
+        {
+            return await _dbContext.Users
+                .Where(u => u.EmailAddress.Contains(filter))
+                .Include(u => u.Role)
+                .Select(u => u.ToUser())
                 .ToListAsync();
         }
     }

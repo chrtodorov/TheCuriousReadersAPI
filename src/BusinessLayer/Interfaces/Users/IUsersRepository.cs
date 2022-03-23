@@ -14,6 +14,9 @@ namespace BusinessLayer.Interfaces.Users
         Task RejectUser(Guid userId, ClaimsPrincipal rejecter);
         Task<IEnumerable<User>> GetPendingCustomers();
         Task<IEnumerable<User>> GetPendingUsers();
+        Task<IEnumerable<User>> GetUsers(string filter);
 
+        Task<User> GetUserById(Guid userId);
+        Task<User> GetLibrarianById(Guid librarianId);
     }
 }

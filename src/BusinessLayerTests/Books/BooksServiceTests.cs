@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BusinessLayer.Interfaces;
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
@@ -16,6 +17,7 @@ public class BooksServiceTests
     private IBooksService _booksService;
     private IBooksRepository _booksRepository;
     private IBookItemsRepository _bookItemsRepository;
+    private IBlobService _blobService;
 
     private readonly Book _bookData = new()
     {
@@ -33,7 +35,11 @@ public class BooksServiceTests
         },
         BookItems = new List<BookItem>()
         {
-            new BookItem() { Barcode = "123456"}
+            new BookItem() {
+                Barcode = "123456",
+                BookItemId = Guid.Parse("3b75f22e-6721-482b-a91f-7772a38fd105"),
+                BookStatus = 0
+            }
         }
 
     };
@@ -55,7 +61,8 @@ public class BooksServiceTests
     {
         _booksRepository = Substitute.For<IBooksRepository>();
         _bookItemsRepository = Substitute.For<IBookItemsRepository>();
-        _booksService = new BooksService(_booksRepository, _bookItemsRepository);
+        _blobService = Substitute.For<IBlobService>();
+        _booksService = new BooksService(_booksRepository, _bookItemsRepository, _blobService);
     }
 
     [Test]
@@ -76,6 +83,32 @@ public class BooksServiceTests
         var book = await _booksService.Get(new Guid());
 
         Assert.IsNull(book);
+    }
+    [Test]
+    public async Task GetCount()
+    {
+        var number = 1;
+
+        _booksRepository.GetNumber().Returns(number);
+
+        var book = await _booksService.GetNumber();
+
+        await _booksRepository.Received(1).GetNumber();
+
+        Assert.That(book, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task GetLatest()
+    {
+        var books = new List<Book> { _bookData };
+
+        _booksRepository.GetLatest().Returns(books);
+
+        var receivedList = await _booksService.GetLatest();
+
+        Assert.That(books, Is.EqualTo(receivedList));
+
     }
 
     [Test]
@@ -147,10 +180,13 @@ public class BooksServiceTests
     [Test]
     public async Task DeleteAsync()
     {
-        _booksRepository.Contains(_bookData.BookId).Returns(true);
+        _booksRepository.Get(_bookData.BookId).Returns(_bookDataResponse);
+
         await _booksService.Delete(_bookData.BookId);
 
         await _booksRepository.Received(1).Delete(_bookData.BookId);
+
+        await _booksRepository.Received(1).Get(_bookData.BookId);
     }
 
     [Test]
@@ -163,5 +199,18 @@ public class BooksServiceTests
         await _booksRepository.Received(1).Contains(_bookData.BookId);
 
         Assert.IsTrue(result);
+    }
+
+    [Test]
+    public async Task MakeUnavailable()
+    {
+        _booksRepository.Get(_bookData.BookId).Returns(_bookDataResponse);
+
+        await _booksService.MakeUnavailable(_bookData.BookId);  
+
+        await _booksRepository.Received(1).MakeUnavailable(_bookData.BookId);
+
+        await _booksRepository.Received(1).Get(_bookData.BookId);
+
     }
 }

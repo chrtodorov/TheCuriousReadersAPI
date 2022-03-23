@@ -29,7 +29,7 @@ public static class AuthorMapper
     {
         return new Author
         {
-            Name = authorsCreateRequest.Name,
+            Name = authorsCreateRequest.Name.Trim(),
             Bio = authorsCreateRequest.Bio
         };
     }

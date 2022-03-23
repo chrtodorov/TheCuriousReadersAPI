@@ -5,6 +5,7 @@ using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Interfaces.BookRequests;
 using BusinessLayer.Interfaces.Books;
+using BusinessLayer.Interfaces.Notifications;
 using BusinessLayer.Interfaces.Email;
 using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Interfaces.Users;
@@ -17,6 +18,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Azure.Storage.Blobs;
+using BusinessLayer.Interfaces;
+using BusinessLayer.Interfaces.Comments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +52,16 @@ builder.Services.AddScoped<IBookRequestsService, BookRequestsService>();
 builder.Services.AddScoped<IBookRequestsRepository, BookRequestsRepository>();
 builder.Services.AddScoped<IBookLoansService, BookLoansService>();
 builder.Services.AddScoped<IBookLoansRepository, BookLoansRepository>();
+builder.Services.AddScoped<INotificationsService, NotificationService>();
+builder.Services.AddScoped<INotificationsRepository, NotificationsRepository>();
+builder.Services.AddScoped<IGenreRepository, GenreRepository>();
+builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<ICommentsService, CommentsService>();
+builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
+
+builder.Services.AddScoped<IBlobRepository, BlobRepository>();
+builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetConnectionString("BlobConnectionString")));
+builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IMailService, MailService>();
 
 builder.Services.AddControllers();

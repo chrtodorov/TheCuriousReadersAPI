@@ -26,7 +26,7 @@ public class BookEntity:AuditableEntity
     public string Genre { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(100)]
+    [MaxLength(1000)]
     public string CoverUrl { get; set; } = string.Empty;
     
     [Required]
@@ -39,4 +39,9 @@ public class BookEntity:AuditableEntity
     public ICollection<AuthorEntity>? Authors { get; set; }
 
     public ICollection<BookItemEntity>? BookItems { get; set; }
+    public ICollection<CommentEntity> Comments { get; set; } = new HashSet<CommentEntity>();
+    public ICollection<UserBooks> UserBooks { get; set; } = new HashSet<UserBooks>();
+
+    public Guid? BlobMetadataId { get; set; }
+    public BlobMetadata? BlobMetadata { get; set; }
 }

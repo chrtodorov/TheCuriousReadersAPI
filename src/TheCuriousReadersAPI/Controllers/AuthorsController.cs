@@ -81,7 +81,10 @@ namespace API.Controllers
             {
                 return Ok(await _authorsService.Update(authorId, authorRequest.ToAuthor()));
             }
-
+            catch (ArgumentNullException e)
+            {
+                return NotFound(e.Message);
+            }
             catch (ArgumentException e)
             {
                 return BadRequest(e.Message);
@@ -97,6 +100,10 @@ namespace API.Controllers
             {
                 await _authorsService.Delete(authorId);
                 return Ok();
+            }
+            catch (ArgumentNullException e)
+            {
+                return NotFound(e.Message);
             }
             catch (ArgumentException e)
             {

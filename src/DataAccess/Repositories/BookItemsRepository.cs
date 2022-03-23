@@ -31,7 +31,7 @@ public class BookItemsRepository : IBookItemsRepository
             _logger.LogCritical(e.ToString());
             throw;
         }
-        
+
         _logger.LogInformation("Create book item with {@BookItemId}", bookItemEntity.BookItemId);
         return bookItemEntity.ToBookItem();
     }
@@ -52,7 +52,7 @@ public class BookItemsRepository : IBookItemsRepository
                 _logger.LogCritical(e.ToString());
                 throw;
             }
-            
+
             _logger.LogInformation("Deleting Book Item with {@BookItemId}", bookItemId);
         }
         _logger.LogInformation("There is no such Book Item with {@BookItemId}", bookItemId);
@@ -97,7 +97,7 @@ public class BookItemsRepository : IBookItemsRepository
             _logger.LogCritical(e.ToString());
             throw;
         }
-        
+
 
         _logger.LogInformation("Update Book Item with {@BookItemId}", bookItemEntity.BookItemId);
         return bookItemEntity.ToBookItem();
@@ -106,16 +106,16 @@ public class BookItemsRepository : IBookItemsRepository
     {
         return await _dataContext.BookItems.AnyAsync(b => b.BookItemId == bookItemId);
     }
-        
+
     public async Task<BookItem?> UpdateBookItemStatus(Guid bookItemid, BookItemStatusEnumeration bookStatus)
     {
         var bookItemStatusEntity = await GetById(bookItemid);
-            
+
         if (bookItemStatusEntity is null)
         {
             return null;
         }
-            
+
         bookItemStatusEntity.BookStatus = bookStatus;
 
         try

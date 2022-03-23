@@ -67,7 +67,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("AddressId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.AdministratorEntity", b =>
@@ -83,7 +83,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Administrators");
+                    b.ToTable("Administrators", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.AuthorEntity", b =>
@@ -113,7 +113,33 @@ namespace DataAccess.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Authors");
+                    b.ToTable("Authors", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccess.Entities.BlobMetadata", b =>
+                {
+                    b.Property<Guid?>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BlobName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BlobsMetadata", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.BookAuthor", b =>
@@ -137,10 +163,13 @@ namespace DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BlobMetadataId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CoverUrl")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -174,12 +203,16 @@ namespace DataAccess.Migrations
 
                     b.HasKey("BookId");
 
+                    b.HasIndex("BlobMetadataId")
+                        .IsUnique()
+                        .HasFilter("[BlobMetadataId] IS NOT NULL");
+
                     b.HasIndex("Isbn")
                         .IsUnique();
 
                     b.HasIndex("PublisherId");
 
-                    b.ToTable("Books");
+                    b.ToTable("Books", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.BookItemEntity", b =>
@@ -226,7 +259,7 @@ namespace DataAccess.Migrations
                         .IsUnique()
                         .HasFilter("[BookLoanId] IS NOT NULL");
 
-                    b.ToTable("BookItems");
+                    b.ToTable("BookItems", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.BookLoanEntity", b =>
@@ -244,6 +277,9 @@ namespace DataAccess.Migrations
                     b.Property<Guid>("LoanedTo")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<int>("TimesExtended")
                         .HasColumnType("int");
 
@@ -256,7 +292,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("LoanedTo");
 
-                    b.ToTable("BookLoans");
+                    b.ToTable("BookLoans", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.BookRequestEntity", b =>
@@ -291,7 +327,42 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("RequestedBy");
 
-                    b.ToTable("BookRequests");
+                    b.ToTable("BookRequests", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccess.Entities.CommentEntity", b =>
+                {
+                    b.Property<Guid>("CommentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("CommentId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
@@ -319,7 +390,22 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccess.Entities.GenreEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Genres");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.LibrarianEntity", b =>
@@ -335,7 +421,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Librarians");
+                    b.ToTable("Librarians", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.PublisherEntity", b =>
@@ -360,7 +446,7 @@ namespace DataAccess.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Publishers");
+                    b.ToTable("Publishers", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.RoleEntity", b =>
@@ -375,7 +461,28 @@ namespace DataAccess.Migrations
 
                     b.HasKey("RoleId");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
+                });
+
+            modelBuilder.Entity("DataAccess.Entities.UserBooks", b =>
+                {
+                    b.Property<Guid>("UserBooksId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserBooksId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserBooks", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.UserEntity", b =>
@@ -420,7 +527,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("DataAccess.Entities.AdministratorEntity", b =>
@@ -455,11 +562,18 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
                 {
+                    b.HasOne("DataAccess.Entities.BlobMetadata", "BlobMetadata")
+                        .WithOne("BookEntity")
+                        .HasForeignKey("DataAccess.Entities.BookEntity", "BlobMetadataId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("DataAccess.Entities.PublisherEntity", "Publisher")
                         .WithMany("Books")
                         .HasForeignKey("PublisherId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("BlobMetadata");
 
                     b.Navigation("Publisher");
                 });
@@ -509,7 +623,7 @@ namespace DataAccess.Migrations
                     b.HasOne("DataAccess.Entities.BookItemEntity", "BookItem")
                         .WithMany("BookRequests")
                         .HasForeignKey("BookItemId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DataAccess.Entities.CustomerEntity", "Customer")
@@ -523,6 +637,25 @@ namespace DataAccess.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Librarian");
+                });
+
+            modelBuilder.Entity("DataAccess.Entities.CommentEntity", b =>
+                {
+                    b.HasOne("DataAccess.Entities.BookEntity", "Book")
+                        .WithMany("Comments")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccess.Entities.UserEntity", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.CustomerEntity", b =>
@@ -555,6 +688,25 @@ namespace DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DataAccess.Entities.UserBooks", b =>
+                {
+                    b.HasOne("DataAccess.Entities.BookEntity", "Book")
+                        .WithMany("UserBooks")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccess.Entities.UserEntity", "User")
+                        .WithMany("UserBooks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DataAccess.Entities.UserEntity", b =>
                 {
                     b.HasOne("DataAccess.Entities.RoleEntity", "Role")
@@ -572,9 +724,18 @@ namespace DataAccess.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DataAccess.Entities.BlobMetadata", b =>
+                {
+                    b.Navigation("BookEntity");
+                });
+
             modelBuilder.Entity("DataAccess.Entities.BookEntity", b =>
                 {
                     b.Navigation("BookItems");
+
+                    b.Navigation("Comments");
+
+                    b.Navigation("UserBooks");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.BookItemEntity", b =>
@@ -616,9 +777,13 @@ namespace DataAccess.Migrations
                 {
                     b.Navigation("Administrators");
 
+                    b.Navigation("Comments");
+
                     b.Navigation("Customers");
 
                     b.Navigation("Librarians");
+
+                    b.Navigation("UserBooks");
                 });
 #pragma warning restore 612, 618
         }
