@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Interfaces.Publishers;
+﻿using BusinessLayer.Helpers;
+using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Models;
 
 namespace BusinessLayer.Services;
@@ -11,43 +12,51 @@ public class PublisherService : IPublishersService
     {
         _publisherRepository = publishersRepository;
     }
-    public async Task<bool> Contains(Guid publisherId) => await _publisherRepository.Contains(publisherId);
 
-    public async Task<bool> IsPublisherNameExisting(string name) => await _publisherRepository.IsPublisherNameExisting(name);
+    public async Task<bool> Contains(Guid publisherId)
+    {
+        return await _publisherRepository.Contains(publisherId);
+    }
+
+    public async Task<bool> IsPublisherNameExisting(string name)
+    {
+        return await _publisherRepository.IsPublisherNameExisting(name);
+    }
 
     public async Task<Publisher> Create(Publisher publisher)
     {
         if (await _publisherRepository.IsPublisherNameExisting(publisher.Name))
-        {
-            throw new ArgumentException($"Publisher with this name: {publisher.Name} is already existing!");
-        }
+            throw new AppException($"Publisher with this name: {publisher.Name} is already existing!");
         return await _publisherRepository.Create(publisher);
-    } 
+    }
 
     public async Task Delete(Guid publisherId)
     {
         if (!await _publisherRepository.Contains(publisherId))
-        {
-            throw new ArgumentNullException(nameof(publisherId), "Publisher cannot be found!");
-        }
+            throw new KeyNotFoundException("Publisher cannot be found!");
         await _publisherRepository.Delete(publisherId);
-    } 
+    }
 
-    public async Task<Publisher?> Get(Guid publisherId) => await _publisherRepository.Get(publisherId);
+    public async Task<Publisher?> Get(Guid publisherId)
+    {
+        var publisher = await _publisherRepository.Get(publisherId);
+        if (publisher is null)
+            throw new KeyNotFoundException("Publisher cannot be found!");
+        return publisher;
+    }
 
-    public async Task<PagedList<Publisher>> GetAll(PublisherParameters parameters) => await _publisherRepository.GetAll(parameters);
-    
+    public async Task<PagedList<Publisher>> GetAll(PublisherParameters parameters)
+    {
+        return await _publisherRepository.GetAll(parameters);
+    }
+
     public async Task<Publisher?> Update(Guid publisherId, Publisher publisher)
     {
         if (!await _publisherRepository.Contains(publisherId))
-        {
-            throw new ArgumentNullException(nameof(publisherId), "Publisher cannot be found!");
-        }
+            throw new KeyNotFoundException("Publisher cannot be found!");
         if (await _publisherRepository.IsPublisherNameExisting(publisher.Name))
-        {
-            throw new ArgumentException($"Publisher with this name: {publisher.Name} is already existing!");
-        }
+            throw new AppException($"Publisher with this name: {publisher.Name} is already existing!");
 
         return await _publisherRepository.Update(publisherId, publisher);
-    } 
+    }
 }

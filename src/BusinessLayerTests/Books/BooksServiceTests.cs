@@ -14,11 +14,6 @@ namespace BusinessLayerTests.Books;
 
 public class BooksServiceTests
 {
-    private IBooksService _booksService;
-    private IBooksRepository _booksRepository;
-    private IBookItemsRepository _bookItemsRepository;
-    private IBlobService _blobService;
-
     private readonly Book _bookData = new()
     {
         BookId = Guid.Parse("9fc0ae59-15cb-4a19-9916-4c431383fab5"),
@@ -28,21 +23,22 @@ public class BooksServiceTests
         Genre = "Fantasy",
         CoverUrl = "http://coverurl",
         PublisherId = Guid.Parse("399b3630-f62a-478b-a51b-11d2367136d2"),
-        AuthorsIds = new List<Guid>()
+        AuthorsIds = new List<Guid>
         {
             Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd105"),
             Guid.Parse("3b75f22e-6721-482b-a91f-f6c473d330e2")
         },
-        BookItems = new List<BookItem>()
+        BookItems = new List<BookItem>
         {
-            new BookItem() {
+            new()
+            {
                 Barcode = "123456",
                 BookItemId = Guid.Parse("3b75f22e-6721-482b-a91f-7772a38fd105"),
                 BookStatus = 0
             }
         }
-
     };
+
     private readonly BookDetailsResponse _bookDataResponse = new()
     {
         BookId = Guid.Parse("9fc0ae59-15cb-4a19-9916-4c431383fab5"),
@@ -51,9 +47,15 @@ public class BooksServiceTests
         Description = "Harry Potter Book",
         Genre = "Fantasy",
         CoverUrl = "http://coverurl",
-        Publisher = new Publisher() { Name = "Me4o", PublisherId = Guid.Parse("399b3630-f62a-478b-a51b-11d2367136d2") },
-        Authors = new List<Author>() { new Author() { Name = "Author", AuthorId = Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd105") } }
+        Publisher = new Publisher {Name = "Me4o", PublisherId = Guid.Parse("399b3630-f62a-478b-a51b-11d2367136d2")},
+        Authors = new List<Author>
+            {new() {Name = "Author", AuthorId = Guid.Parse("53e49024-2062-41cd-a04a-7772a38fd105")}}
     };
+
+    private IBlobService _blobService;
+    private IBookItemsRepository _bookItemsRepository;
+    private IBooksRepository _booksRepository;
+    private IBooksService _booksService;
 
 
     [SetUp]
@@ -80,10 +82,9 @@ public class BooksServiceTests
     {
         _booksRepository.Get(_bookDataResponse.BookId).Returns(_bookDataResponse);
 
-        var book = await _booksService.Get(new Guid());
-
-        Assert.IsNull(book);
+        Assert.ThrowsAsync<KeyNotFoundException>(async delegate { await _booksService.Get(new Guid()); });
     }
+
     [Test]
     public async Task GetCount()
     {
@@ -101,21 +102,20 @@ public class BooksServiceTests
     [Test]
     public async Task GetLatest()
     {
-        var books = new List<Book> { _bookData };
+        var books = new List<Book> {_bookData};
 
         _booksRepository.GetLatest().Returns(books);
 
         var receivedList = await _booksService.GetLatest();
 
         Assert.That(books, Is.EqualTo(receivedList));
-
     }
 
     [Test]
     public async Task GetBooksAsync()
     {
         var books = new List<Book> {_bookData};
-        var pagedList = new PagedList<Book>(books, 1,1,1);
+        var pagedList = new PagedList<Book>(books, 1, 1, 1);
 
         _booksRepository.GetBooks(Arg.Any<BookParameters>()).Returns(pagedList);
 
@@ -123,6 +123,7 @@ public class BooksServiceTests
 
         Assert.AreEqual(pagedList, receivedPagedList);
     }
+
     [Test]
     public async Task CreateAsync()
     {
@@ -167,7 +168,7 @@ public class BooksServiceTests
             Genre = "Fake Genre",
             CoverUrl = "http://coverurl_fake",
             PublisherId = Guid.Parse("e6f2337e-92b4-406f-b1ee-8d9835c66bf5"),
-            AuthorsIds = new List<Guid>()
+            AuthorsIds = new List<Guid>
             {
                 Guid.Parse("dbca97b1-a0a2-41d3-aebf-e06ea388d43b"),
                 Guid.Parse("ca16daf2-c4c5-43d8-bfe8-595daeed229f")
@@ -206,11 +207,10 @@ public class BooksServiceTests
     {
         _booksRepository.Get(_bookData.BookId).Returns(_bookDataResponse);
 
-        await _booksService.MakeUnavailable(_bookData.BookId);  
+        await _booksService.MakeUnavailable(_bookData.BookId);
 
         await _booksRepository.Received(1).MakeUnavailable(_bookData.BookId);
 
         await _booksRepository.Received(1).Get(_bookData.BookId);
-
     }
 }

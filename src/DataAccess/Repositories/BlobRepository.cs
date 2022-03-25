@@ -5,52 +5,53 @@ using DataAccess.Mappers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace DataAccess.Repositories
+namespace DataAccess.Repositories;
+
+public class BlobRepository : IBlobRepository
 {
-    public class BlobRepository : IBlobRepository
+    private readonly DataContext _dataContext;
+    private readonly ILogger<BlobRepository> _logger;
+
+    public BlobRepository(DataContext dataContext, ILogger<BlobRepository> logger)
     {
-        private readonly DataContext _dataContext;
-        private readonly ILogger<BlobRepository> _logger;
+        _dataContext = dataContext;
+        _logger = logger;
+    }
 
-        public BlobRepository(DataContext dataContext, ILogger<BlobRepository> logger)
+    public async Task<BlobMetadataResponse> Create(BlobMetadataRequest blobRequest)
+    {
+        var blobMetadata = blobRequest.ToBlobMetadata();
+
+        try
         {
-            _dataContext = dataContext;
-            _logger = logger;
+            await _dataContext.BlobsMetadata.AddAsync(blobMetadata);
+            await _dataContext.SaveChangesAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e.Message);
+            throw;
         }
 
-        public async Task<BlobMetadataResponse> Create(BlobMetadataRequest blobRequest)
-        {
-            var blobMetadata = blobRequest.ToBlobMetadata();
+        return blobMetadata.ToBlobResponse();
+    }
 
-            try
-            {
-                await _dataContext.BlobsMetadata.AddAsync(blobMetadata);
-                await _dataContext.SaveChangesAsync();
-                
-            }
-            catch (DbUpdateException e)
-            {
-                _logger.LogCritical(e.Message);
-            }
-            return blobMetadata.ToBlobResponse();
+    public async Task Delete(string name)
+    {
+        try
+        {
+            var blob = await _dataContext.BlobsMetadata
+                .FirstOrDefaultAsync(b => b.BlobName == name);
+            if (blob is null)
+                throw new KeyNotFoundException("Blob not found!");
+
+            _dataContext.BlobsMetadata.Remove(blob);
+            await _dataContext.SaveChangesAsync();
         }
-
-        public async Task Delete(string name)
+        catch (Exception e)
         {
-            try
-            {
-                var blob = await _dataContext.BlobsMetadata
-                    .FirstOrDefaultAsync(b => b.BlobName == name);
-                if (blob is null)
-                   return;
-
-                _dataContext.BlobsMetadata.Remove(blob);
-                await _dataContext.SaveChangesAsync();
-            }
-            catch (DbUpdateException e)
-            {
-                _logger.LogCritical(e.Message);
-            }
+            _logger.LogWarning(e.Message);
+            throw;
         }
     }
 }

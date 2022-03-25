@@ -15,9 +15,10 @@ public class BookItemsRepository : IBookItemsRepository
 
     public BookItemsRepository(DataContext dataContext, ILogger<BookItemsRepository> logger)
     {
-        this._dataContext = dataContext;
-        this._logger = logger;
+        _dataContext = dataContext;
+        _logger = logger;
     }
+
     public async Task<BookItem> Create(BookItem bookItem)
     {
         var bookItemEntity = bookItem.ToBookItemEntity();
@@ -26,9 +27,9 @@ public class BookItemsRepository : IBookItemsRepository
         {
             await _dataContext.SaveChangesAsync();
         }
-        catch (DbUpdateException e)
+        catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogWarning(e.Message);
             throw;
         }
 
@@ -47,14 +48,15 @@ public class BookItemsRepository : IBookItemsRepository
             {
                 await _dataContext.SaveChangesAsync();
             }
-            catch (DbUpdateException e)
+            catch (Exception e)
             {
-                _logger.LogCritical(e.ToString());
+                _logger.LogWarning(e.Message);
                 throw;
             }
 
             _logger.LogInformation("Deleting Book Item with {@BookItemId}", bookItemId);
         }
+
         _logger.LogInformation("There is no such Book Item with {@BookItemId}", bookItemId);
     }
 
@@ -65,23 +67,11 @@ public class BookItemsRepository : IBookItemsRepository
         return bookItemEntity?.ToBookItem();
     }
 
-    public async Task<BookItemEntity?> GetById(Guid bookItemId, bool tracking = true)
-    {
-        var query = _dataContext.BookItems
-            .Where(b => b.BookItemId == bookItemId);
-        if (!tracking)
-            query.AsNoTracking();
-
-        return await query.FirstOrDefaultAsync();
-    }
     public async Task<BookItem?> Update(Guid bookItemId, BookItem bookItem)
     {
         var bookItemEntity = await GetById(bookItemId);
 
-        if (bookItemEntity is null)
-        {
-            return null;
-        }
+        if (bookItemEntity is null) return null;
 
         bookItemEntity.Barcode = bookItem.Barcode;
         bookItemEntity.BorrowedDate = bookItem.BorrowedDate;
@@ -92,9 +82,9 @@ public class BookItemsRepository : IBookItemsRepository
         {
             await _dataContext.SaveChangesAsync();
         }
-        catch (DbUpdateException e)
+        catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogWarning(e.Message);
             throw;
         }
 
@@ -102,29 +92,26 @@ public class BookItemsRepository : IBookItemsRepository
         _logger.LogInformation("Update Book Item with {@BookItemId}", bookItemEntity.BookItemId);
         return bookItemEntity.ToBookItem();
     }
+
     public async Task<bool> Contains(Guid bookItemId)
     {
         return await _dataContext.BookItems.AnyAsync(b => b.BookItemId == bookItemId);
     }
 
-    public async Task<BookItem?> UpdateBookItemStatus(Guid bookItemid, BookItemStatusEnumeration bookStatus)
+    public async Task<BookItem?> UpdateBookItemStatus(Guid bookItemId, BookItemStatusEnumeration bookStatus)
     {
-        var bookItemStatusEntity = await GetById(bookItemid);
-
+        var bookItemStatusEntity = await GetById(bookItemId);
         if (bookItemStatusEntity is null)
-        {
-            return null;
-        }
-
+            throw new KeyNotFoundException("Book Copy not found.");
         bookItemStatusEntity.BookStatus = bookStatus;
 
         try
         {
             await _dataContext.SaveChangesAsync();
         }
-        catch (DbUpdateException e)
+        catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogWarning(e.Message);
             throw;
         }
 
@@ -140,5 +127,15 @@ public class BookItemsRepository : IBookItemsRepository
     public async Task<bool> HasAvailableItems(Guid bookId)
     {
         return await _dataContext.BookItems.AnyAsync(i => i.BookId == bookId);
+    }
+
+    public async Task<BookItemEntity?> GetById(Guid bookItemId, bool tracking = true)
+    {
+        var query = _dataContext.BookItems
+            .Where(b => b.BookItemId == bookItemId);
+        if (!tracking)
+            query.AsNoTracking();
+
+        return await query.FirstOrDefaultAsync();
     }
 }

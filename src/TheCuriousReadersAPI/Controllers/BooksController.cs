@@ -6,155 +6,105 @@ using DataAccess.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
+namespace API.Controllers;
+
+[Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
+[Route("api/[controller]")]
+[ApiController]
+public class BooksController : ControllerBase
 {
-    [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class BooksController : ControllerBase
+    private readonly IBooksService _booksService;
+    private readonly ILogger<BooksController> _logger;
+
+    public BooksController(IBooksService booksService, ILogger<BooksController> logger)
     {
-        private readonly IBooksService _booksService;
-        private readonly ILogger<BooksController> _logger;
+        _booksService = booksService;
+        _logger = logger;
+    }
 
-        public BooksController(IBooksService booksService, ILogger<BooksController> logger)
-        {
-            this._booksService = booksService;
-            this._logger = logger;
-        }
+    [AllowAnonymous]
+    [HttpGet("{bookId}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Get(Guid bookId)
+    {
+        _logger.LogInformation("Get Book {@BookId}", bookId);
+        return Ok(await _booksService.Get(bookId));
+    }
 
-        [AllowAnonymous]
-        [HttpGet("{bookId}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get(Guid bookId)
-        {
-            _logger.LogInformation("Get Book {@BookId}", bookId);
+    [AllowAnonymous]
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedList<Book>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBooks([FromQuery] BookParameters booksParameters)
+    {
+        _logger.LogInformation("Returned all books from database");
+        return Ok(await _booksService.GetBooks(booksParameters));
+    }
 
-            var result = await _booksService.Get(bookId);
+    [AllowAnonymous]
+    [HttpGet("latestbooks")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<Book>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetLatest()
+    {
+        _logger.LogInformation("Returned all books from database");
+        return Ok(await _booksService.GetLatest());
+    }
 
-            if (result is null)
-                return NotFound("Book with such Id is not found!");
-            return Ok(result);
-        }
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Create([FromBody] BookRequest bookRequest)
+    {
+        _logger.LogInformation("Create Book: " + bookRequest);
 
-        [AllowAnonymous]
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedList<Book>))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetBooks([FromQuery] BookParameters booksParameters)
-        {
-            _logger.LogInformation($"Returned all books from database");
-            return Ok(await _booksService.GetBooks(booksParameters));
-        }
-        [AllowAnonymous]
-        [HttpGet("latestbooks")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<Book>))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetLatest()
-        {
-            var books = await _booksService.GetLatest();
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            if (books.Count==0)
-                return NotFound("No books found");
+        return Ok(await _booksService.Create(bookRequest.ToBook()));
+    }
 
-            _logger.LogInformation($"Returned {books.Count} books from database");
+    [HttpPut("{bookId}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Update(Guid bookId, [FromBody] BookRequest bookRequest)
+    {
+        _logger.LogInformation("Update Book: " + bookRequest);
 
-            return Ok(books);
-        }
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
+    }
 
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> Create([FromBody] BookRequest bookRequest)
-        {
-            _logger.LogInformation("Create Book: " + bookRequest.ToString());
+    [HttpDelete("{bookId}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Delete(Guid bookId)
+    {
+        _logger.LogInformation("Delete Book with {@bookId}", bookId);
+        await _booksService.Delete(bookId);
+        return Ok();
+    }
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+    [AllowAnonymous]
+    [HttpGet("count")]
+    public async Task<IActionResult> GetNumber()
+    {
+        _logger.LogInformation("Get books count");
+        return Ok(await _booksService.GetNumber());
+    }
 
-            try
-            {
-                return Ok(await _booksService.Create(bookRequest.ToBook()));
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpPut("{bookId}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> Update(Guid bookId, [FromBody] BookRequest bookRequest)
-        {
-            _logger.LogInformation("Update Book: " + bookRequest.ToString());
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
-            }
-            catch (ArgumentNullException e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-            
-        }
-
-        [HttpDelete("{bookId}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> Delete(Guid bookId)
-        {
-            _logger.LogInformation("Delete Book with {@bookId}", bookId);
-
-            try
-            {
-                await _booksService.Delete(bookId);
-                return Ok();
-            }
-            catch (ArgumentNullException e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-            
-        }
-        [AllowAnonymous]
-        [HttpGet("count")]
-        public async Task<IActionResult> GetNumber()
-        {
-            var numberOfBooks = await _booksService.GetNumber();
-            return Ok(numberOfBooks);
-        }
-
-        [HttpPut("{bookId}/status")]
-        public async Task<IActionResult> MakeUnavailable(Guid bookId)
-        {
-            try
-            {
-                await _booksService.MakeUnavailable(bookId);
-                return Ok();
-            }
-            catch (ArgumentException e)
-            {
-                return NotFound(e.Message);
-            }
-        }
+    [HttpPut("{bookId}/status")]
+    public async Task<IActionResult> MakeUnavailable(Guid bookId)
+    {
+        await _booksService.MakeUnavailable(bookId);
+        return Ok();
     }
 }

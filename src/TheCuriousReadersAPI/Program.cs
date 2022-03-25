@@ -1,12 +1,17 @@
+using System.Text;
+using Azure.Storage.Blobs;
 using BusinessLayer;
 using BusinessLayer.Enumerations;
+using BusinessLayer.Helpers;
+using BusinessLayer.Interfaces;
 using BusinessLayer.Interfaces.Authors;
 using BusinessLayer.Interfaces.BookItems;
 using BusinessLayer.Interfaces.BookLoans;
 using BusinessLayer.Interfaces.BookRequests;
 using BusinessLayer.Interfaces.Books;
-using BusinessLayer.Interfaces.Notifications;
+using BusinessLayer.Interfaces.Comments;
 using BusinessLayer.Interfaces.Email;
+using BusinessLayer.Interfaces.Notifications;
 using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Interfaces.Users;
 using BusinessLayer.Services;
@@ -17,23 +22,19 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
-using Azure.Storage.Blobs;
-using BusinessLayer.Interfaces;
-using BusinessLayer.Interfaces.Comments;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
-        builder =>
+        corsPolicyBuilder =>
         {
-            builder.WithOrigins(
-                "http://localhost:4200",
-                "http://schoolofdotnet2022-vitosha.azurewebsites.net")
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+            corsPolicyBuilder.WithOrigins(
+                    "http://localhost:4200",
+                    "http://schoolofdotnet2022-vitosha.azurewebsites.net")
+                .AllowAnyMethod()
+                .AllowAnyHeader();
         });
 });
 
@@ -60,7 +61,8 @@ builder.Services.AddScoped<ICommentsService, CommentsService>();
 builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
 
 builder.Services.AddScoped<IBlobRepository, BlobRepository>();
-builder.Services.AddSingleton(x => new BlobServiceClient(builder.Configuration.GetConnectionString("BlobConnectionString")));
+builder.Services.AddSingleton(x =>
+    new BlobServiceClient(builder.Configuration.GetConnectionString("BlobConnectionString")));
 builder.Services.AddScoped<IBlobService, BlobService>();
 builder.Services.AddScoped<IMailService, MailService>();
 
@@ -77,9 +79,10 @@ builder.Services.AddAuthentication(x =>
     x.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtSecret").Value)),
+        IssuerSigningKey =
+            new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtSecret").Value)),
         ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateAudience = false
     };
 });
 
@@ -131,11 +134,10 @@ builder.Services.AddSwaggerGen(options =>
         Description = "The Curious Readers backend API",
         Contact = new OpenApiContact
         {
-            Name = "Team Vitosha",
+            Name = "Team Vitosha"
         }
     });
-
-});   
+});
 
 builder.Services.AddDbContext<DataContext>(options =>
 {
@@ -157,13 +159,16 @@ app.UseAuthentication();
 
 app.UseCors();
 
+// global error handler
+app.UseMiddleware<ErrorHandlerMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 using var scope = app.Services.CreateScope();
 var dataContext = scope.ServiceProvider.GetService<DataContext>();
-await dataContext?.Database.MigrateAsync();
+await dataContext!.Database.MigrateAsync();
 await RoleSeeder.SeedRolesAsync(dataContext);
 await UserSeeder.SeedUsersAsync(dataContext);
 
