@@ -63,30 +63,52 @@ public class BooksRepository : IBooksRepository
     {
         var query = _dataContext.Books.Include(b => b.Authors).AsNoTracking();
         var result = Enumerable.Empty<BookEntity>();
+        var getAllBooks = bookParameters
+            .GetType()
+            .GetProperties()
+            .Where(i => i.PropertyType == typeof(string))
+            .Select(i => i.GetValue(bookParameters)!.ToString())
+            .All(v => string.IsNullOrEmpty(v));
 
-        if (!string.IsNullOrEmpty(bookParameters.Title))
-            result = result.Union(query.Where(b => b.Title.Contains(bookParameters.Title)));
-
-        if (!string.IsNullOrEmpty(bookParameters.Author))
+        if (getAllBooks)
         {
-            var author = await _dataContext.Authors.FirstOrDefaultAsync(a => a.Name == bookParameters.Author);
-            result = result.Union(query.Where(b => b.Authors!.Contains(author!)));
+            result = query;
+            _logger.LogInformation("Get all books");
         }
+        else
+        {
+            if (!string.IsNullOrEmpty(bookParameters.Title))
+            {
+                result = result.Union(query.Where(b => b.Title.Contains(bookParameters.Title)));
+            }
 
-        if (!string.IsNullOrEmpty(bookParameters.Publisher))
-            result = result.Union(query.Where(b => b.Publisher!.Name == bookParameters.Publisher));
+            if (!string.IsNullOrEmpty(bookParameters.Author))
+            {
+                var authors = _dataContext.Authors.Where(a => a.Name.Contains(bookParameters.Author));
+                result = result.Union(query.Where(b => b.Authors!.Any(a => authors.Contains(a))));
+            }
 
-        if (!string.IsNullOrEmpty(bookParameters.DescriptionKeyword))
-            result = result.Union(query.Where(b => b.Description.Contains(bookParameters.DescriptionKeyword)));
+            if (!string.IsNullOrEmpty(bookParameters.Publisher))
+            {
+                result = result.Union(query.Where(b => b.Publisher!.Name.Contains(bookParameters.Publisher)));
+            }
 
-        if (!string.IsNullOrEmpty(bookParameters.Genre))
-            result = result.Union(query.Where(b => b.Genre == bookParameters.Genre));
-        result = result.Count() == 0 ? query : result;
-        _logger.LogInformation("Get all books");
+            if (!string.IsNullOrEmpty(bookParameters.DescriptionKeyword))
+            {
+                result = result.Union(query.Where(b => b.Description.Contains(bookParameters.DescriptionKeyword)));
+            }
 
-        return PagedList<Book>.ToPagedList(result.AsQueryable()
-                .OrderBy(b => b.Title)
-                .Select(b => b.ToBook()),
+            if (!string.IsNullOrEmpty(bookParameters.Genre))
+            {
+                result = result.Union(query.Where(b => b.Genre.Contains(bookParameters.Genre)));
+            }
+        }
+        
+
+        return PagedList<Book>.ToPagedList(
+            result.AsQueryable()
+            .OrderBy(b => b.Title)
+            .Select(b => b.ToBook()),
             bookParameters.PageNumber,
             bookParameters.PageSize);
     }
@@ -104,7 +126,10 @@ public class BooksRepository : IBooksRepository
             _dataContext.Genres.Add(genreEntity);
         }
 
-        foreach (var author in bookEntity.Authors!) _dataContext.Authors.Attach(author);
+        foreach (var author in bookEntity.Authors!)
+        {
+            _dataContext.Authors.Attach(author);
+        }
 
         await _dataContext.Books.AddAsync(bookEntity);
         try
@@ -159,8 +184,10 @@ public class BooksRepository : IBooksRepository
             bookToUpdate.BookItems?.Add(copy);
             _dataContext.BookItems.Attach(copy);
         }
-
-        foreach (var copy in copiesToRemove!) bookToUpdate.BookItems?.Remove(copy);
+        foreach (var copy in copiesToRemove!)
+        {
+            bookToUpdate.BookItems?.Remove(copy);
+        }
 
         _logger.LogInformation("Update Book with {@BookId}", bookToUpdate.BookId);
 
