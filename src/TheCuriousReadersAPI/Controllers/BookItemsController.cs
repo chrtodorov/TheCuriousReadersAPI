@@ -5,111 +5,66 @@ using DataAccess.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace API.Controllers
+namespace API.Controllers;
+
+[Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
+[Route("api/[controller]")]
+[ApiController]
+public class BookItemsController : ControllerBase
 {
-    [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class BookItemsController : ControllerBase
+    private readonly IBookItemsService _bookItemsService;
+    private readonly ILogger<BookItemsController> _logger;
+
+    public BookItemsController(IBookItemsService bookItemsService, ILogger<BookItemsController> logger)
     {
-        private readonly IBookItemsService _bookItemsService;
-        private readonly ILogger<BookItemsController> _logger;
+        _bookItemsService = bookItemsService;
+        _logger = logger;
+    }
 
-        public BookItemsController(IBookItemsService bookItemsService, ILogger<BookItemsController> logger)
-        {
-            this._bookItemsService = bookItemsService;
-            this._logger = logger;
-        }
+    [AllowAnonymous]
+    [HttpGet("{bookItemId}")]
+    public async Task<IActionResult> Get(Guid bookItemId)
+    {
+        _logger.LogInformation("Get Book Items {@BookItemId}", bookItemId);
+        return Ok(await _bookItemsService.Get(bookItemId));
+    }
 
-        [AllowAnonymous]
-        [HttpGet("{bookItemId}")]
-        public async Task<IActionResult> Get(Guid bookItemId)
-        {
-            _logger.LogInformation("Get Book Items {@BookItemId}", bookItemId);
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] BookItemsRequest bookItemsRequest)
+    {
+        _logger.LogInformation("Create Book Items" + bookItemsRequest);
 
-            var result = await _bookItemsService.Get(bookItemId);
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (result is null)
-            {
-                return NotFound("Book item with such Id is not found!");
-            }
-            return Ok(result);
-        }
+        return Ok(await _bookItemsService.Create(bookItemsRequest.ToBookItem()));
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody]BookItemsRequest bookItemsRequest)
-        {
-            _logger.LogInformation("Create Book Items" + bookItemsRequest.ToString());
+    [HttpPut("{bookItemId}")]
+    public async Task<IActionResult> Update(Guid bookItemId, [FromBody] BookItemsRequest bookItemsRequest)
+    {
+        _logger.LogInformation("Update Book Item" + bookItemsRequest);
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            try
-            {
-                return Ok(await _bookItemsService.Create(bookItemsRequest.ToBookItem()));
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        return Ok(await _bookItemsService.Update(bookItemId, bookItemsRequest.ToBookItem()));
+    }
 
-        [HttpPut("{bookItemId}")]
-        public async Task<IActionResult> Update(Guid bookItemId, [FromBody] BookItemsRequest bookItemsRequest)
-        {
-            _logger.LogInformation("Update Book Item" + bookItemsRequest.ToString());
-        
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+    [HttpPut("{bookItemId}/{bookItemStatus}")]
+    public async Task<IActionResult> UpdateBookItemStatus(Guid bookItemId, BookItemStatusEnumeration bookItemStatus)
+    {
+        _logger.LogInformation("Update Book Item Status" + bookItemStatus);
 
-            try
-            {
-                return Ok(await _bookItemsService.Update(bookItemId, bookItemsRequest.ToBookItem()));
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        [HttpPut("{bookItemId}/{bookItemStatus}")]
-        public async Task<IActionResult> UpdateBookItemStatus(Guid bookItemId, BookItemStatusEnumeration bookItemStatus)
-        {
-            _logger.LogInformation("Update Book Item Status" + bookItemStatus.ToString());
-        
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+        return Ok(await _bookItemsService.UpdateBookItemStatus(bookItemId, bookItemStatus));
+    }
 
-            try
-            {
-                return Ok(await _bookItemsService.UpdateBookItemStatus(bookItemId, bookItemStatus));
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }                                    
-        }
+    [HttpDelete("{bookItemId}")]
+    public async Task<IActionResult> Delete(Guid bookItemId)
+    {
+        _logger.LogInformation("Delete Book Item with {@BookItemId}", bookItemId);
 
-        [HttpDelete("{bookItemId}")]
-        public async Task<IActionResult> Delete(Guid bookItemId)
-        {
-            _logger.LogInformation("Delete Book Item with {@BookItemId}", bookItemId);
-
-            try
-            {
-                await _bookItemsService.Delete(bookItemId);
-                return Ok();
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        await _bookItemsService.Delete(bookItemId);
+        return Ok();
     }
 }

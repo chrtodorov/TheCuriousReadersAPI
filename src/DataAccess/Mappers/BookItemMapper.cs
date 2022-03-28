@@ -33,10 +33,7 @@ public static class BookItemMapper
     {
         return new BookItem
         {
-            Barcode = bookItemsRequest.Barcode,
-            BorrowedDate= bookItemsRequest.BorrowedDate,
-            ReturnDate= bookItemsRequest.ReturnDate,
-            BookStatus = bookItemsRequest.BookStatus
+            Barcode = bookItemsRequest.Barcode
         };
     }
 }

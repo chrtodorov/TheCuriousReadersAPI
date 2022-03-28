@@ -6,23 +6,15 @@ using API.Controllers;
 using BusinessLayer.Interfaces.Books;
 using BusinessLayer.Models;
 using BusinessLayer.Requests;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-using NSubstitute.ReturnsExtensions;
 using NUnit.Framework;
 
 namespace APITests.Books;
 
 public class BooksControllerTests
 {
-    private IBooksService _booksService;
-    private ILogger<BooksController> _logger;
-
-    private BooksController _booksController;
-
     private readonly Book _bookData = new()
     {
         BookId = Guid.Parse("9fc0ae59-15cb-4a19-9916-4c431383fab5"),
@@ -54,6 +46,10 @@ public class BooksControllerTests
         }
     };
 
+    private BooksController _booksController;
+    private IBooksService _booksService;
+    private ILogger<BooksController> _logger;
+
     [SetUp]
     public void Setup()
     {
@@ -62,31 +58,14 @@ public class BooksControllerTests
 
         _booksController = new BooksController(_booksService, _logger)
         {
-            ControllerContext = new ControllerContext(),
+            ControllerContext = new ControllerContext()
         };
-    }
-
-    [Test]
-    public async Task GetAsync_NotFound()
-    {
-        var fakeId = Guid.NewGuid();
-
-        _booksService.Get(fakeId).ReturnsNull();
-
-        var result = await _booksController.Get(fakeId);
-
-        await _booksService.Received(1).Get(fakeId);
-
-        var notFoundResult = result as NotFoundObjectResult;
-
-        Assert.IsNotNull(notFoundResult);
-        Assert.AreEqual(404, notFoundResult?.StatusCode);
     }
 
     [Test]
     public async Task GetBooksAsync()
     {
-        var books = new List<Book> { _bookData };
+        var books = new List<Book> {_bookData};
         var pagedList = new PagedList<Book>(books, 1, 1, 1);
 
         _booksService.GetBooks(Arg.Any<BookParameters>()).Returns(pagedList);
@@ -107,7 +86,7 @@ public class BooksControllerTests
     [Test]
     public async Task GetLatest()
     {
-        var books = new List<Book> { _bookData };
+        var books = new List<Book> {_bookData};
 
         _booksService.GetLatest().Returns(books);
 
@@ -131,12 +110,12 @@ public class BooksControllerTests
 
         var result = await _booksController.Create(_bookRequestData);
 
-        await _booksService.Received(1).Create(Arg.Is<Book>(a => 
+        await _booksService.Received(1).Create(Arg.Is<Book>(a =>
             a.Title == _bookData.Title &&
             a.Isbn == _bookData.Isbn &&
             a.Genre == _bookData.Genre &&
-            a.CoverUrl == _bookData.CoverUrl && 
-            a.AuthorsIds!.SequenceEqual(_bookData.AuthorsIds!)&&
+            a.CoverUrl == _bookData.CoverUrl &&
+            a.AuthorsIds!.SequenceEqual(_bookData.AuthorsIds!) &&
             a.Description == _bookData.Description &&
             a.PublisherId == _bookData.PublisherId));
 
@@ -177,7 +156,7 @@ public class BooksControllerTests
             a.Isbn == _bookData.Isbn &&
             a.Genre == _bookData.Genre &&
             a.CoverUrl == _bookData.CoverUrl &&
-            a.AuthorsIds!.SequenceEqual(_bookData.AuthorsIds!)&&
+            a.AuthorsIds!.SequenceEqual(_bookData.AuthorsIds!) &&
             a.Description == _bookData.Description &&
             a.PublisherId == _bookData.PublisherId));
 

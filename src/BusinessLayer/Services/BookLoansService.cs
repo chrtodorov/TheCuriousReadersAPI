@@ -1,4 +1,5 @@
 ﻿using BusinessLayer.Interfaces.BookLoans;
+using BusinessLayer.Interfaces.UserBooks;
 using BusinessLayer.Models;
 using BusinessLayer.Requests;
 
@@ -7,14 +8,19 @@ namespace BusinessLayer.Services
     public class BookLoansService : IBookLoansService
     {
         private readonly IBookLoansRepository bookLoansRepository;
+        private readonly IUserBooksRepository userBooksRepository;
 
-        public BookLoansService(IBookLoansRepository bookLoansRepository)
+        public BookLoansService(IBookLoansRepository bookLoansRepository, IUserBooksRepository userBooksRepository)
         {
             this.bookLoansRepository = bookLoansRepository;
+            this.userBooksRepository = userBooksRepository;
         }
 
-        public Task CompleteLoan(Guid bookLoanId)
-            => bookLoansRepository.CompleteLoan(bookLoanId);
+        public async Task CompleteLoan(Guid bookLoanId, CompleteLoanRequest completeLoanRequest)
+        {
+            await bookLoansRepository.CompleteLoan(bookLoanId);
+            await userBooksRepository.Add(completeLoanRequest.LoanedToId, completeLoanRequest.BookId);
+        }
 
         public PagedList<BookLoan> GetAll(PagingParameters pagingParameters) 
             => bookLoansRepository.GetAll(pagingParameters);
