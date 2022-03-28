@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Interfaces.Publishers;
+﻿using BusinessLayer.Helpers;
+using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Models;
 using DataAccess.Entities;
 using DataAccess.Mappers;
@@ -15,8 +16,8 @@ public class PublishersRepository : IPublishersRepository
 
     public PublishersRepository(DataContext dataContext, ILogger<PublishersRepository> logger)
     {
-        this._dataContext = dataContext;
-        this._logger = logger;
+        _dataContext = dataContext;
+        _logger = logger;
     }
 
     public async Task<Publisher> Create(Publisher publisher)
@@ -27,12 +28,12 @@ public class PublishersRepository : IPublishersRepository
         {
             await _dataContext.SaveChangesAsync();
         }
-        catch (DbUpdateException e)
+        catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogWarning(e.Message);
             throw;
         }
-        
+
         _logger.LogInformation("Create publisher with {@PublisherId}", publisherEntity.PublisherId);
         return publisherEntity.ToPublisher();
     }
@@ -50,16 +51,16 @@ public class PublishersRepository : IPublishersRepository
                 await _dataContext.SaveChangesAsync();
                 _logger.LogInformation("Deleting Publisher with {@PublisherId}", publisherId);
             }
-            catch (DbUpdateException e)
+            catch (Exception e)
             {
+                _logger.LogWarning(e.Message);
                 if (e.GetBaseException() is SqlException {Number: 547})
-                {
-                    throw new ArgumentException("Must delete all books from this publisher before deleting it.");
-                }
+                    throw new AppException("Must delete all books from this publisher before deleting it.");
+
+                throw;
             }
-            
-            
         }
+
         _logger.LogInformation("There is no such Publisher with {@PublisherId}", publisherId);
     }
 
@@ -70,30 +71,17 @@ public class PublishersRepository : IPublishersRepository
         return publisherEntity?.ToPublisher();
     }
 
-    public async Task<PublisherEntity?> GetById(Guid publisherId, bool tracking = true)
-    {
-        var query = _dataContext.Publishers
-            .Where(p => p.PublisherId == publisherId);
-        if (!tracking)
-            query.AsNoTracking();
-
-        return await query.FirstOrDefaultAsync();
-    }
-
     public Task<PagedList<Publisher>> GetAll(PublisherParameters parameters)
     {
         var query = _dataContext.Publishers.AsNoTracking();
 
-        if (!string.IsNullOrEmpty(parameters.Name))
-        {
-            query = query.Where(a => a.Name.Contains(parameters.Name));
-        }
+        if (!string.IsNullOrEmpty(parameters.Name)) query = query.Where(a => a.Name.Contains(parameters.Name));
 
         _logger.LogInformation("Get all publishers");
 
         return Task.FromResult(PagedList<Publisher>.ToPagedList(query
-            .OrderBy(b => b.Name)
-            .Select(b => b.ToPublisher()),
+                .OrderBy(b => b.Name)
+                .Select(b => b.ToPublisher()),
             parameters.PageNumber,
             parameters.PageSize));
     }
@@ -102,10 +90,7 @@ public class PublishersRepository : IPublishersRepository
     {
         var publisherEntity = await GetById(publisherId);
 
-        if (publisherEntity is null)
-        {
-            return null;
-        }
+        if (publisherEntity is null) return null;
 
         publisherEntity.Name = publisher.Name;
 
@@ -113,17 +98,17 @@ public class PublishersRepository : IPublishersRepository
         {
             await _dataContext.SaveChangesAsync();
         }
-        catch (DbUpdateException e)
+        catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogWarning(e.Message);
             throw;
         }
 
         _logger.LogInformation("Updated Publisher with {@PublisherId}", publisherEntity.PublisherId);
 
         return publisherEntity.ToPublisher();
-
     }
+
     public async Task<bool> Contains(Guid publisherId)
     {
         return await _dataContext.Publishers.AnyAsync(p => p.PublisherId == publisherId);
@@ -132,5 +117,15 @@ public class PublishersRepository : IPublishersRepository
     public async Task<bool> IsPublisherNameExisting(string name)
     {
         return await _dataContext.Publishers.AnyAsync(p => p.Name == name);
+    }
+
+    public async Task<PublisherEntity?> GetById(Guid publisherId, bool tracking = true)
+    {
+        var query = _dataContext.Publishers
+            .Where(p => p.PublisherId == publisherId);
+        if (!tracking)
+            query.AsNoTracking();
+
+        return await query.FirstOrDefaultAsync();
     }
 }

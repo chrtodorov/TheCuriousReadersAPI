@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Threading.Tasks;
 using API.Controllers;
 using BusinessLayer.Interfaces.Authors;
@@ -14,19 +13,18 @@ namespace APITests.Authors;
 
 public class AuthorsControllerTest
 {
+    private AuthorsController _authorsController;
     private IAuthorsService _authorsService;
     private ILogger<AuthorsController> _logger;
 
-    private AuthorsController _authorsController;
-
-    Author authorData = new Author
+    private readonly Author authorData = new()
     {
         AuthorId = Guid.NewGuid(),
         Name = "Nick",
         Bio = "Whats up guys!"
     };
 
-    AuthorsRequest authorsRequest = new AuthorsRequest
+    private readonly AuthorsRequest authorsRequest = new()
     {
         Name = "Nick",
         Bio = "Whats up guys!"
@@ -35,11 +33,10 @@ public class AuthorsControllerTest
     [SetUp]
     public void Setup()
     {
-        _authorsService= Substitute.For<IAuthorsService>();
+        _authorsService = Substitute.For<IAuthorsService>();
         _logger = Substitute.For<ILogger<AuthorsController>>();
 
         _authorsController = new AuthorsController(_authorsService, _logger);
-
     }
 
     [Test]
@@ -63,25 +60,8 @@ public class AuthorsControllerTest
     }
 
     [Test]
-    public async Task GetAsync_NotFound()
-    {
-        var fakeId = Guid.NewGuid();
-        Author error = null;
-
-        _authorsService.Get(fakeId).Returns(error);
-        var result = await _authorsController.Get(fakeId);
-        await _authorsService.Received(1).Get(fakeId);
-
-        var okResult = result as ObjectResult;
-
-        Assert.IsNotNull(okResult);
-        Assert.That(okResult.StatusCode,Is.EqualTo((int)HttpStatusCode.NotFound));
-    }
-
-    [Test]
     public async Task CreateAsync()
     {
-
         _authorsService.Create(Arg.Any<Author>()).Returns(authorData);
 
         var resultC = await _authorsController.Create(authorsRequest);

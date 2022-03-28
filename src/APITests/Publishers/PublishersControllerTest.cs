@@ -1,4 +1,6 @@
-﻿using API.Controllers;
+﻿using System;
+using System.Threading.Tasks;
+using API.Controllers;
 using BusinessLayer.Interfaces.Publishers;
 using BusinessLayer.Models;
 using BusinessLayer.Requests;
@@ -6,132 +8,109 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace APITests.Publishers
+namespace APITests.Publishers;
+
+public class PublishersControllerTest
 {
-    public class PublishersControllerTest
+    private ILogger<PublishersController> _logger;
+
+    private PublishersController _publishersController;
+    private IPublishersService _publishersService;
+
+    private readonly Publisher publisherData = new()
     {
-        private IPublishersService _publishersService;
-        private ILogger<PublishersController> _logger;
+        PublisherId = Guid.NewGuid(),
+        Name = "Chavdar"
+    };
 
-        private PublishersController _publishersController;
+    private readonly PublisherRequest publisherRequest = new()
+    {
+        Name = "Chavdar"
+    };
 
-        Publisher publisherData = new Publisher
-        {
-            PublisherId = Guid.NewGuid(),
-            Name = "Chavdar"
-        };
+    [SetUp]
+    public void Setup()
+    {
+        _publishersService = Substitute.For<IPublishersService>();
+        _logger = Substitute.For<ILogger<PublishersController>>();
 
-        PublisherRequest publisherRequest = new PublisherRequest
-        {
-            Name = "Chavdar"
-        };
+        _publishersController = new PublishersController(_publishersService, _logger);
+    }
 
-        [SetUp]
-        public void Setup()
-        {
-            _publishersService = Substitute.For<IPublishersService>();
-            _logger = Substitute.For<ILogger<PublishersController>>();
+    [Test]
+    public async Task GetAsync_Ok()
+    {
+        _publishersService.Get(Arg.Any<Guid>()).Returns(publisherData);
+        var result = await _publishersController.Get(publisherData.PublisherId);
+        await _publishersService.Received(1).Get(Arg.Any<Guid>());
 
-            _publishersController = new PublishersController(_publishersService, _logger);
-        }
+        var okResult = result as OkObjectResult;
 
-        [Test]
-        public async Task GetAsync_Ok()
-        {
-            _publishersService.Get(Arg.Any<Guid>()).Returns(publisherData);
-            var result = await _publishersController.Get(publisherData.PublisherId);
-            await _publishersService.Received(1).Get(Arg.Any<Guid>());
+        Assert.IsNotNull(publisherRequest);
+        Assert.AreEqual(200, okResult.StatusCode);
 
-            var okResult = result as OkObjectResult;
+        var publisherResult = okResult.Value as Publisher;
 
-            Assert.IsNotNull(publisherRequest);
-            Assert.AreEqual(200, okResult.StatusCode);
+        Assert.IsNotNull(publisherResult);
+        Assert.That(publisherResult.PublisherId, Is.EqualTo(publisherData.PublisherId));
+        Assert.That(publisherResult.Name, Is.EqualTo(publisherData.Name));
+    }
 
-            var publisherResult = okResult.Value as Publisher;
+    [Test]
+    public async Task CreateAsync()
+    {
+        _publishersService.Create(Arg.Any<Publisher>()).Returns(publisherData);
 
-            Assert.IsNotNull(publisherResult);
-            Assert.That(publisherResult.PublisherId, Is.EqualTo(publisherData.PublisherId));
-            Assert.That(publisherResult.Name, Is.EqualTo(publisherData.Name));
-        }
+        var resultC = await _publishersController.Create(publisherRequest);
 
-        [Test]
-        public async Task GetAsync_NotFound()
-        {
-            var fakeId = Guid.NewGuid();
-            Publisher error = null;
+        await _publishersService.Received(1).Create(Arg.Is<Publisher>(p =>
+            p.Name == publisherData.Name));
 
-            _publishersService.Get(fakeId).Returns(error);
-            var result = await _publishersController.Get(fakeId);
-            await _publishersService.Received(1).Get(fakeId);
+        var okResult = resultC as ObjectResult;
 
-            var okResult = result as ObjectResult;
+        Assert.IsNotNull(okResult);
+        Assert.AreEqual(200, okResult.StatusCode);
 
-            Assert.IsNotNull(okResult);
-            Assert.That(okResult.StatusCode, Is.EqualTo((int)HttpStatusCode.NotFound));
-        }
+        var publisherResult = okResult.Value as Publisher;
 
-        [Test]
-        public async Task CreateAsync()
-        {
-            _publishersService.Create(Arg.Any<Publisher>()).Returns(publisherData);
+        Assert.IsNotNull(publisherResult);
 
-            var resultC = await _publishersController.Create(publisherRequest);
+        Assert.That(publisherResult.Name, Is.EqualTo(publisherData.Name));
+    }
 
-            await _publishersService.Received(1).Create(Arg.Is<Publisher>(p =>
-                p.Name == publisherData.Name));
+    [Test]
+    public async Task UpdateAsync()
+    {
+        _publishersService.Update(Arg.Any<Guid>(), Arg.Any<Publisher>()).Returns(publisherData);
 
-            var okResult = resultC as ObjectResult;
+        _publishersService.Contains(Arg.Any<Guid>()).Returns(true);
 
-            Assert.IsNotNull(okResult);
-            Assert.AreEqual(200, okResult.StatusCode);
+        var resultU = await _publishersController.Update(publisherData.PublisherId, publisherRequest);
 
-            var publisherResult = okResult.Value as Publisher;
+        await _publishersService.Received(1).Update(Arg.Any<Guid>(), Arg.Is<Publisher>(p =>
+            p.Name == publisherData.Name
+        ));
 
-            Assert.IsNotNull(publisherResult);
+        var statusResult = resultU as ObjectResult;
 
-            Assert.That(publisherResult.Name, Is.EqualTo(publisherData.Name));
-        }
+        Assert.IsNotNull(statusResult);
+        Assert.AreEqual(200, statusResult.StatusCode);
 
-        [Test]
-        public async Task UpdateAsync()
-        {
-            _publishersService.Update(Arg.Any<Guid>(), Arg.Any<Publisher>()).Returns(publisherData);
+        var valueResult = statusResult.Value as Publisher;
 
-            _publishersService.Contains(Arg.Any<Guid>()).Returns(true);
+        Assert.AreEqual(valueResult.Name, publisherData.Name);
+    }
 
-            var resultU = await _publishersController.Update(publisherData.PublisherId, publisherRequest);
+    [Test]
+    public async Task DeleteAsync()
+    {
+        await _publishersService.Delete(Arg.Any<Guid>());
+        _publishersService.Contains(Arg.Any<Guid>()).Returns(true);
 
-            await _publishersService.Received(1).Update(Arg.Any<Guid>(), Arg.Is<Publisher>(p =>
-                p.Name == publisherData.Name 
-            ));
+        var resultD = await _publishersController.Delete(publisherData.PublisherId);
+        await _publishersService.Received(1).Delete(Arg.Any<Guid>());
 
-            var statusResult = resultU as ObjectResult;
-
-            Assert.IsNotNull(statusResult);
-            Assert.AreEqual(200, statusResult.StatusCode);
-
-            var valueResult = statusResult.Value as Publisher;
-
-            Assert.AreEqual(valueResult.Name, publisherData.Name);
-        }
-
-        [Test]
-        public async Task DeleteAsync()
-        {
-            await _publishersService.Delete(Arg.Any<Guid>());
-            _publishersService.Contains(Arg.Any<Guid>()).Returns(true);
-
-            var resultD = await _publishersController.Delete(publisherData.PublisherId);
-            await _publishersService.Received(1).Delete(Arg.Any<Guid>());
-
-            Assert.That(resultD, Is.Not.Null);
-        }
+        Assert.That(resultD, Is.Not.Null);
     }
 }

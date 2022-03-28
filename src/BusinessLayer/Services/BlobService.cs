@@ -2,6 +2,7 @@
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using BusinessLayer.Helpers;
 using BusinessLayer.Interfaces;
 using BusinessLayer.Models;
 using BusinessLayer.Requests;
@@ -14,9 +15,9 @@ namespace BusinessLayer.Services;
 
 public class BlobService : IBlobService
 {
-    private readonly BlobServiceClient _blobServiceClient;
     private readonly BlobContainerClient _blobContainerClient;
     private readonly IBlobRepository _blobRepository;
+    private readonly BlobServiceClient _blobServiceClient;
 
     public BlobService(BlobServiceClient blobServiceClient, IBlobRepository blobRepository)
     {
@@ -29,10 +30,7 @@ public class BlobService : IBlobService
     {
         var items = new List<string>();
 
-        await foreach (var blobItem in _blobContainerClient.GetBlobsAsync())
-        {
-            items.Add(blobItem.Name);
-        }
+        await foreach (var blobItem in _blobContainerClient.GetBlobsAsync()) items.Add(blobItem.Name);
 
         return items;
     }
@@ -41,22 +39,22 @@ public class BlobService : IBlobService
     public async Task<BlobMetadataResponse> UploadAsync(FileModel model)
     {
         if (model.ImageFile?.ContentType is not ("image/jpg" or "image/png" or "image/jpeg"))
-            throw new ArgumentException("Content type must be image!");
+            throw new AppException("Content type must be image!");
 
         await using var ms = new MemoryStream();
         await model.ImageFile!.CopyToAsync(ms);
         var imageBytes = ms.ToArray();
 
         if (imageBytes.Length > 2097152)
-            throw new ArgumentException("Max allowed size is 2MB");
+            throw new AppException("Max allowed size is 2MB");
 
-        ISupportedImageFormat format = new JpegFormat { Quality = 70 };
+        ISupportedImageFormat format = new JpegFormat {Quality = 70};
         var size = new Size(400, 620);
         var resizeLayer = new ResizeLayer(size, ResizeMode.Stretch);
         await using var inStream = new MemoryStream(imageBytes);
         await using var outStream = new MemoryStream();
 
-        using (var imageFactory = new ImageFactory(preserveExifData: true))
+        using (var imageFactory = new ImageFactory(true))
         {
             // Load, resize, set the format and quality and save an image.
             imageFactory.Load(inStream)
@@ -69,7 +67,7 @@ public class BlobService : IBlobService
         {
             var name = DateTime.Now.ToString("yyyyMMddHHmmss") + model.ImageFile?.FileName;
             var blobClient = _blobContainerClient.GetBlobClient(name);
-            await blobClient.UploadAsync(outStream, new BlobHttpHeaders() { ContentType = model.ImageFile?.ContentType });
+            await blobClient.UploadAsync(outStream, new BlobHttpHeaders {ContentType = model.ImageFile?.ContentType});
 
             IDictionary<string, string> metadata =
                 new Dictionary<string, string>();
@@ -85,7 +83,7 @@ public class BlobService : IBlobService
                 BlobName = blobClient.Name,
                 Url = blobClient.Uri.AbsoluteUri,
                 ContentType = props.Value.ContentType,
-                CreatedOn = props.Value.CreatedOn.DateTime,
+                CreatedOn = props.Value.CreatedOn.DateTime
             };
 
             return await _blobRepository.Create(blobRequest);
@@ -93,7 +91,7 @@ public class BlobService : IBlobService
 
         catch (RequestFailedException e)
         {
-            throw new ArgumentException(e.Message);
+            throw new AppException(e.Message);
         }
     }
 

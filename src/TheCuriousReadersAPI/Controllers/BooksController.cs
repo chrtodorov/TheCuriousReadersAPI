@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
-    [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
     [Route("api/[controller]")]
     [ApiController]
     public class BooksController : ControllerBase
@@ -16,13 +15,12 @@ namespace API.Controllers
         private readonly IBooksService _booksService;
         private readonly ILogger<BooksController> _logger;
 
-        public BooksController(IBooksService booksService, ILogger<BooksController> logger)
-        {
-            this._booksService = booksService;
-            this._logger = logger;
-        }
+    public BooksController(IBooksService booksService, ILogger<BooksController> logger)
+    {
+        _booksService = booksService;
+        _logger = logger;
+    }
 
-        [AllowAnonymous]
         [HttpGet("{bookId}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -37,7 +35,6 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PagedList<Book>))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -46,7 +43,7 @@ namespace API.Controllers
             _logger.LogInformation($"Returned all books from database");
             return Ok(await _booksService.GetBooks(booksParameters));
         }
-        [AllowAnonymous]
+
         [HttpGet("latestbooks")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<Book>))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -63,6 +60,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -71,20 +69,14 @@ namespace API.Controllers
         {
             _logger.LogInformation("Create Book: " + bookRequest.ToString());
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            try
-            {
-                return Ok(await _booksService.Create(bookRequest.ToBook()));
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        return Ok(await _booksService.Create(bookRequest.ToBook()));
+    }
 
         [HttpPut("{bookId}")]
+        [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Book))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -93,25 +85,13 @@ namespace API.Controllers
         {
             _logger.LogInformation("Update Book: " + bookRequest.ToString());
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
-            }
-            catch (ArgumentNullException e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (ArgumentException e)
-            {
-                return BadRequest(e.Message);
-            }
-            
-        }
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        return Ok(await _booksService.Update(bookId, bookRequest.ToBook()));
+    }
 
         [HttpDelete("{bookId}")]
+        [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Guid))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -135,7 +115,7 @@ namespace API.Controllers
             }
             
         }
-        [AllowAnonymous]
+
         [HttpGet("count")]
         public async Task<IActionResult> GetNumber()
         {
@@ -144,6 +124,7 @@ namespace API.Controllers
         }
 
         [HttpPut("{bookId}/status")]
+        [Authorize(Policy = Policies.RequireAdministratorOrLibrarianRole)]
         public async Task<IActionResult> MakeUnavailable(Guid bookId)
         {
             try
@@ -156,5 +137,16 @@ namespace API.Controllers
                 return NotFound(e.Message);
             }
         }
+
+        [HttpGet("[action]")]
+        [Authorize(Policy = Policies.RequireCustomerRole)]
+        public IActionResult Read([FromQuery] PagingParameters pagingParameters)
+        {
+            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value!);
+            var books = _booksService.GetReadBooks(userId, pagingParameters);
+
+            return Ok(books);
+        }
+
     }
 }

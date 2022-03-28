@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Interfaces.Authors;
+﻿using BusinessLayer.Helpers;
+using BusinessLayer.Interfaces.Authors;
 using BusinessLayer.Models;
 using DataAccess.Entities;
 using DataAccess.Mappers;
@@ -15,8 +16,8 @@ public class AuthorsRepository : IAuthorsRepository
 
     public AuthorsRepository(DataContext dataContext, ILogger<AuthorsRepository> logger)
     {
-        this._dataContext = dataContext;
-        this._logger = logger;
+        _dataContext = dataContext;
+        _logger = logger;
     }
 
     public async Task<Author?> Get(Guid authorId)
@@ -27,30 +28,19 @@ public class AuthorsRepository : IAuthorsRepository
 
         return authorEntity?.ToAuthor();
     }
-    public async Task<AuthorEntity?> GetById(Guid authorId, bool tracking = true)
-    {
-        var query =  _dataContext.Authors
-            .Where(a => a.AuthorId == authorId);
 
-        if (!tracking)
-            query.AsNoTracking();
-        
-        return await query.FirstOrDefaultAsync();
-    }
     public Task<PagedList<Author>> GetAuthors(AuthorParameters authorParameters)
     {
         var query = _dataContext.Authors.AsNoTracking();
-        
+
         if (!string.IsNullOrEmpty(authorParameters.Name))
-        {
             query = query.Where(a => a.Name.Contains(authorParameters.Name));
-        }
-        
+
         _logger.LogInformation("Get all authors");
 
         return Task.FromResult(PagedList<Author>.ToPagedList(query
-            .OrderBy(b => b.Name)
-            .Select(b => b.ToAuthor()),
+                .OrderBy(b => b.Name)
+                .Select(b => b.ToAuthor()),
             authorParameters.PageNumber,
             authorParameters.PageSize));
     }
@@ -65,9 +55,9 @@ public class AuthorsRepository : IAuthorsRepository
         {
             await _dataContext.SaveChangesAsync();
         }
-        catch (DbUpdateException e)
+        catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogWarning(e.Message);
             throw;
         }
 
@@ -89,12 +79,12 @@ public class AuthorsRepository : IAuthorsRepository
         {
             await _dataContext.SaveChangesAsync();
         }
-        catch (DbUpdateException e)
+        catch (Exception e)
         {
-            _logger.LogCritical(e.ToString());
+            _logger.LogWarning(e.Message);
             throw;
         }
-        
+
         _logger.LogInformation("Update Author with {@AuthorId}", authorEntity.AuthorId);
 
         return authorEntity.ToAuthor();
@@ -112,13 +102,13 @@ public class AuthorsRepository : IAuthorsRepository
                 await _dataContext.SaveChangesAsync();
                 _logger.LogInformation("Deleting Author with {@AuthorId}", authorId);
             }
-            catch (DbUpdateException e)
+            catch (Exception e)
             {
-                if(e.GetBaseException() is SqlException {Number: 547})
-                {
-                    throw new ArgumentException("Must delete all books from this author before deleting it.");
-                }
-            }          
+                _logger.LogWarning(e.Message);
+                if (e.GetBaseException() is SqlException {Number: 547})
+                    throw new AppException("Must delete all books from this author before deleting it.");
+                throw;
+            }
         }
     }
 
@@ -130,5 +120,16 @@ public class AuthorsRepository : IAuthorsRepository
     public async Task<bool> IsAuthorNameExisting(string name)
     {
         return await _dataContext.Authors.AnyAsync(a => a.Name == name);
+    }
+
+    public async Task<AuthorEntity?> GetById(Guid authorId, bool tracking = true)
+    {
+        var query = _dataContext.Authors
+            .Where(a => a.AuthorId == authorId);
+
+        if (!tracking)
+            query.AsNoTracking();
+
+        return await query.FirstOrDefaultAsync();
     }
 }
