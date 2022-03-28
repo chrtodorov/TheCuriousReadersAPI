@@ -73,17 +73,17 @@ public class CommentsRepository : ICommentsRepository
         return commentEntity.ToComment();
     }
 
-    public PagedList<Comment> GetCommentsByBookId(Guid bookId, PagingParameters pagingParameters)
-    {
-        var query = GetCommentsQuery(c => c.Book.BookId == bookId);
-        return PagedList<Comment>.ToPagedList(query, pagingParameters.PageNumber, pagingParameters.PageSize);
-    }
+        public PagedList<Comment> GetCommentsByBookId(Guid bookId, PagingParameters pagingParameters)
+        {
+            var query = GetCommentsQuery(c => c.Book.BookId == bookId && c.Status == CommentStatus.Approved);
+            return PagedList<Comment>.ToPagedList(query, pagingParameters.PageNumber, pagingParameters.PageSize);
+        }
 
-    public PagedList<Comment> GetCommentsByUserId(Guid userId, PagingParameters pagingParameters)
-    {
-        var query = GetCommentsQuery(c => c.User.UserId == userId);
-        return PagedList<Comment>.ToPagedList(query, pagingParameters.PageNumber, pagingParameters.PageSize);
-    }
+        public PagedList<Comment> GetCommentsByUserId(Guid userId, PagingParameters pagingParameters)
+        {
+            var query = GetCommentsQuery(c => c.User.UserId == userId && c.Status == CommentStatus.Approved);
+            return PagedList<Comment>.ToPagedList(query, pagingParameters.PageNumber, pagingParameters.PageSize);
+        }
 
     public PagedList<Comment> GetPendingComments(PagingParameters pagingParameters)
     {

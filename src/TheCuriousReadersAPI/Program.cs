@@ -22,6 +22,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
+using Azure.Storage.Blobs;
+using BusinessLayer.Interfaces;
+using BusinessLayer.Interfaces.Comments;
+using BusinessLayer.Interfaces.UserBooks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,6 +64,7 @@ builder.Services.AddScoped<IGenreRepository, GenreRepository>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<ICommentsService, CommentsService>();
 builder.Services.AddScoped<ICommentsRepository, CommentsRepository>();
+builder.Services.AddScoped<IUserBooksRepository, UserBooksRepository>();
 
 builder.Services.AddScoped<IBlobRepository, BlobRepository>();
 builder.Services.AddSingleton(x =>

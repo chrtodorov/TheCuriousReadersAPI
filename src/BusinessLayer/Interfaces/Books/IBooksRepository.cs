@@ -7,6 +7,7 @@ public interface IBooksRepository
 {
     Task<BookDetailsResponse?> Get(Guid bookId);
     Task<PagedList<Book>> GetBooks(BookParameters booksParameters);
+    PagedList<Book> GetReadBooks(Guid userId, PagingParameters pagingParameters);
     Task<List<Book>> GetLatest();
     Task<Book> Create(Book book);
     Task<Book?> Update(Guid bookId, Book book);

@@ -45,11 +45,14 @@ public class CommentsController : ControllerBase
         return Ok(comments);
     }
 
-    [HttpPost]
-    [Authorize(Policy = Policies.RequireCustomerRole)]
-    public async Task<IActionResult> AddComment(CommentRequest commentRequest)
-    {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        [HttpPost]
+        [Authorize(Policy = Policies.RequireCustomerRole)]
+        public async Task<IActionResult> AddComment([FromBody] CommentRequest commentRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
         var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "Id")?.Value!);
         var createdComment = await commentsService.AddComment(commentRequest.ToComment(userId));

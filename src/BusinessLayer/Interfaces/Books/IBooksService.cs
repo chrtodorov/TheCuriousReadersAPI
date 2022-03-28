@@ -7,6 +7,7 @@ public interface IBooksService
 {
     Task<BookDetailsResponse?> Get(Guid bookId);
     Task<PagedList<Book>> GetBooks(BookParameters booksParameters);
+    PagedList<Book> GetReadBooks(Guid userId, PagingParameters pagingParameters);
     Task<List<Book>> GetLatest();
     Task<int>GetNumber();
     Task<Book> Create(Book book);

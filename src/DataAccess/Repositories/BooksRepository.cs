@@ -48,6 +48,10 @@ public class BooksRepository : IBooksRepository
             .ToListAsync();
 
         _logger.LogInformation("Get latest books");
+        if (bookList.Count == 0)
+        {
+            _logger.LogInformation("No books to show");
+        }
 
         return bookList;
     }
@@ -200,7 +204,7 @@ public class BooksRepository : IBooksRepository
             _logger.LogWarning(e.Message);
             throw;
         }
-
+        
         return bookToUpdate.ToBook();
     }
 
@@ -218,8 +222,7 @@ public class BooksRepository : IBooksRepository
             }
             catch (Exception e)
             {
-                _logger.LogWarning(e.Message);
-                if (e.GetBaseException() is SqlException {Number: 547})
+                if (e.GetBaseException() is SqlException { Number: 547 })
                     throw new AppException(
                         "All book requests and loans must be completed before deleting this book!");
                 throw;
@@ -270,6 +273,17 @@ public class BooksRepository : IBooksRepository
         return book.BookItems!.Any(i => i.BookStatus == BookItemStatusEnumeration.Borrowed);
     }
 
+    public PagedList<Book> GetReadBooks(Guid userId, PagingParameters pagingParameters)
+    {
+        var query = _dataContext.UserBooks
+            .Where(ub => ub.UserId == userId)
+            .Include(ub => ub.Book)
+                .ThenInclude(b => b.Authors)
+            .Select(ub => ub.Book.ToBookWithoutItems())
+            .AsNoTracking();
+
+        return PagedList<Book>.ToPagedList(query, pagingParameters.PageNumber, pagingParameters.PageSize);
+    }
     public async Task<BookEntity?> GetById(Guid bookId, bool tracking = true)
     {
         var book = _dataContext.Books

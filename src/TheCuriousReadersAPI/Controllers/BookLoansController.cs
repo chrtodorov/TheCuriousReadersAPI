@@ -82,10 +82,21 @@ public class BookLoansController : ControllerBase
 
     [HttpPut("Complete/{bookLoanId}")]
     [Authorize(Policy = Policies.RequireLibrarianRole)]
-    public async Task<IActionResult> CompleteLoan(Guid bookLoanId)
+    public async Task<IActionResult> CompleteLoan(Guid bookLoanId, [FromBody] CompleteLoanRequest completeLoanRequest)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        await bookLoansService.CompleteLoan(bookLoanId);
-        return Ok();
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        try
+        {
+            await bookLoansService.CompleteLoan(bookLoanId, completeLoanRequest);
+            return Ok();
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError("BookLoan", ex.Message);
+            return BadRequest(ModelState);
+        }
     }
 }

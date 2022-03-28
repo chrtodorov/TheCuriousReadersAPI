@@ -18,11 +18,10 @@ public class BookLoansRepository : IBookLoansRepository
         _dbContext = dbContext;
     }
 
-    public async Task CompleteLoan(Guid bookLoanId)
-    {
-        var bookLoanEntity = await GetBookLoansQuery()
-            .Include(l => l.BookItem)
-            .FirstOrDefaultAsync(l => l.BookLoanId == bookLoanId);
+        public async Task CompleteLoan(Guid bookLoanId)
+        {
+            var bookLoanEntity = await GetBookLoansQuery()
+                .FirstOrDefaultAsync(l => l.BookLoanId == bookLoanId);
 
         if (bookLoanEntity is null) throw new KeyNotFoundException($"Book loan with id: {bookLoanId} does not exist");
 

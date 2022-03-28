@@ -88,13 +88,9 @@ public class BooksService : IBooksService
         await _bookRepository.MakeUnavailable(bookId);
     }
 
-    public async Task<bool> Contains(Guid bookId)
-    {
-        return await _bookRepository.Contains(bookId);
-    }
+    public async Task<bool> Contains(Guid bookId) => await _bookRepository.Contains(bookId);
+    public async Task<bool> IsIsbnExisting(string isbn) => await _bookRepository.IsIsbnExisting(isbn);
 
-    public async Task<bool> IsIsbnExisting(string isbn)
-    {
-        return await _bookRepository.IsIsbnExisting(isbn);
-    }
+    public PagedList<Book> GetReadBooks(Guid userId, PagingParameters pagingParameters)
+        => _bookRepository.GetReadBooks(userId, pagingParameters);
 }
